@@ -3,106 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Current Status</title>
-    
-    <!-- Favicon link -->
-    <link rel="icon" type="image/x-icon" href="statwars.png">
-
+    <title>Subscribers List</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .update-log-container {
+        table {
             width: 100%;
-            height: 100%;
-            border: 2px solid #4CAF50;
-            border-radius: 10px;
-            background-color: #ffffff;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            overflow: hidden;
-            box-sizing: border-box;
+            border-collapse: collapse;
         }
-
-        .update-log {
-            height: 100%;
-            overflow-y: scroll;
-            padding-right: 10px;
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
         }
-
-        .update-entry {
-            font-size: 18px;
-            margin-bottom: 20px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        th {
+            background-color: #f2f2f2;
         }
-
-        .update-entry.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Scrollbar styling */
-        .update-log::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .update-log::-webkit-scrollbar-thumb {
-            background-color: #4CAF50;
-            border-radius: 10px;
-        }
-
-        .update-log::-webkit-scrollbar-track {
-            background-color: #f1f1f1;
+        #warning {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ffdddd;
+            border: 1px solid #f44336;
+            color: #d8000c;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="update-log-container">
-        <h2>Codename TradeMark and StatTube Status</h2>
-        <div class="update-log" id="updateLog">
-            <p class="update-entry">Current Codename TradeMark™ status: Version 0.83 🟢</p>
-            <p class="update-entry">StatTube™ Current Status: All Systems Functional 🟢</p>
-            <p class="update-entry">Codename TradeMark™ 0.83-0.80 - "The StatTube Update"</p>
-            <p class="update-entry">Codename TradeMark™ 0.79, new command update.</p>
-            <p class="update-entry">Why this website exists- This website was originally intended for FYSC+, but it came over here. </p>
-            <p class="update-entry">What is this website for? We dont know yet, probably for like a API or something.</p>
-        </div>
+    <h1>Subscribers List</h1>
+    <table id="subscribersTable">
+        <thead>
+            <tr>
+                <th>Name (Channel ID)</th>
+                <th>Subscriber Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+        </tbody>
+    </table>
+
+    <div id="warning">
+        I know you hacker people. If you try to hack into my Firebase database like Clicker Battles when it was vulnerable, you will get perma banned. First and last warning. Thanks.
     </div>
 
-    <script>
-        // Function to add the "visible" class when the update log is scrolled
-        function revealEntries() {
-            const entries = document.querySelectorAll('.update-entry');
-            entries.forEach(entry => {
-                const rect = entry.getBoundingClientRect();
-                if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-                    entry.classList.add('visible');
+    <script type="module">
+        // Firebase configuration
+        const firebaseConfig = {
+        apiKey: "AIzaSyAmlyuX61yuhkrOiuXiSeqUyLCu8coxW34",
+        authDomain: "stat-tube-4e85e.firebaseapp.com",
+        databaseURL: "https://stat-tube-4e85e-default-rtdb.firebaseio.com/",
+        projectId: "stat-tube-4e85e",
+        storageBucket: "stat-tube-4e85e.appspot.com",
+        messagingSenderId: "264123777016",
+        appId: "1:264123777016:web:f4f8ec7402cd3093d9200d"
+    };
+
+        // Import the Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js';
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Reference to the subscribers node in your database
+        const subscribersRef = ref(database, 'subscribers');
+
+        // Fetching and displaying subscriber data
+        onValue(subscribersRef, (snapshot) => {
+            const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
+            subscribersTable.innerHTML = ''; // Clear the table before updating
+
+            if (snapshot.exists()) {
+                const subscribersData = snapshot.val();
+                console.log('Subscribers Data:', subscribersData); // Log the entire data structure
+
+                for (const key in subscribersData) {
+                    const subscriber = subscribersData[key];
+                    console.log('Subscriber:', subscriber); // Log individual subscriber data
+                    
+                    // Display channelId and subscriberCount
+                    const channelId = subscriber.channelId || "Unknown Channel ID";
+                    const subscriberCount = subscriber.subscriberCount !== undefined ? subscriber.subscriberCount : "No Count";
+
+                    // Create a new row for each subscriber
+                    const newRow = subscribersTable.insertRow();
+                    newRow.insertCell(0).innerText = channelId; // Channel ID cell
+                    newRow.insertCell(1).innerText = subscriberCount; // Count cell
                 }
-            });
-        }
-
-        // Initial reveal when page is loaded
-        document.addEventListener('DOMContentLoaded', revealEntries);
-
-        // Reveal entries when scrolling
-        document.getElementById('updateLog').addEventListener('scroll', revealEntries);
+            } else {
+                const newRow = subscribersTable.insertRow();
+                newRow.insertCell(0).innerText = "No CT Stream yet. Check Stat Wars for upcoming CT streams.";
+                newRow.insertCell(1).innerText = "";
+            }
+        });
     </script>
 </body>
 </html>
