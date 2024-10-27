@@ -53,6 +53,17 @@
             cursor: pointer;
         }
 
+        .channel-name {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .verified-badge {
+            width: 16px;
+            height: 16px;
+        }
+
         #modal {
             display: none;
             position: fixed;
@@ -187,7 +198,16 @@
 
                 sortedData.forEach(subscriber => {
                     const newRow = subscribersTable.insertRow();
-                    newRow.insertCell(0).innerText = subscriber.name;
+
+                    // Channel Name with Verified Badge for >100,000
+                    const nameCell = newRow.insertCell(0);
+                    nameCell.className = "channel-name";
+                    nameCell.innerHTML = `${subscriber.name}`;
+                    if (subscriber.count >= 100000) {
+                        nameCell.innerHTML += ' <img src="sigmasigma.png" alt="Verified" class="verified-badge">';
+                    }
+
+                    // Subscriber Count
                     newRow.insertCell(1).innerText = subscriber.count;
 
                     // Add click event to show modal with live subscriber count
