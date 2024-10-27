@@ -32,12 +32,12 @@
     <table id="subscribersTable">
         <thead>
             <tr>
-                <th>Name (Channel ID)</th>
+                <th>Channel Name</th>
                 <th>Subscriber Count</th>
             </tr>
         </thead>
         <tbody>
-            
+            <!-- Subscriber data will be inserted here -->
         </tbody>
     </table>
 
@@ -77,22 +77,21 @@
                 const subscribersData = snapshot.val();
                 console.log('Subscribers Data:', subscribersData); // Log the entire data structure
 
-                for (const key in subscribersData) {
-                    const subscriber = subscribersData[key];
+                for (const channelName in subscribersData) {
+                    const subscriber = subscribersData[channelName];
                     console.log('Subscriber:', subscriber); // Log individual subscriber data
                     
-                    // Display channelId and subscriberCount
-                    const channelId = subscriber.channelId || "Unknown Channel ID";
+                    // Display channel name and subscriber count
                     const subscriberCount = subscriber.subscriberCount !== undefined ? subscriber.subscriberCount : "No Count";
 
                     // Create a new row for each subscriber
                     const newRow = subscribersTable.insertRow();
-                    newRow.insertCell(0).innerText = channelId; // Channel ID cell
+                    newRow.insertCell(0).innerText = channelName; // Channel Name cell
                     newRow.insertCell(1).innerText = subscriberCount; // Count cell
                 }
             } else {
                 const newRow = subscribersTable.insertRow();
-                newRow.insertCell(0).innerText = "No CT Stream yet. Check Stat Wars for upcoming CT streams.";
+                newRow.insertCell(0).innerText = "No subscribers found.";
                 newRow.insertCell(1).innerText = "";
             }
         });
