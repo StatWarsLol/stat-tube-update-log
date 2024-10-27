@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscribers List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css" />
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -49,6 +50,47 @@
 
         tr:hover {
             background-color: #e0f7ff;
+            cursor: pointer;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 300px;
+            text-align: center;
+        }
+
+        #modal-channel-name {
+            font-size: 1em;
+            color: #333;
+        }
+
+        #modal-subscriber-count {
+            font-size: 2.5em;
+            color: #0073e6;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #close-btn {
+            cursor: pointer;
+            color: #0073e6;
+            margin-top: 10px;
         }
 
         #warning {
@@ -67,7 +109,7 @@
     </style>
 </head>
 <body>
-    <h1>Codename TradeMark 0.90 API</h1>
+    <h1>Subscribers List</h1>
     <table id="subscribersTable">
         <thead>
             <tr>
@@ -84,6 +126,17 @@
         I know you hacker people. If you try to hack into my Firebase database like Clicker Battles when it was vulnerable, you will get perma banned. First and last warning. Thanks.
     </div>
 
+    <!-- Modal for live subscriber count -->
+    <div id="modal">
+        <div id="modal-content">
+            <div id="modal-channel-name">Channel Name</div>
+            <div id="modal-subscriber-count" class="odometer">0</div>
+            <div id="close-btn">Close</div>
+        </div>
+    </div>
+
+    <!-- Odometer JS Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
     <script type="module">
         // Firebase configuration
         const firebaseConfig = {
@@ -104,6 +157,20 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
+        // Modal elements
+        const modal = document.getElementById("modal");
+        const modalChannelName = document.getElementById("modal-channel-name");
+        const modalSubscriberCount = document.getElementById("modal-subscriber-count");
+        const closeBtn = document.getElementById("close-btn");
+
+        // Close modal function
+        closeBtn.onclick = () => {
+            modal.style.display = "none";
+            clearInterval(liveUpdateInterval); // Clear interval when closing the modal
+        }
+
+        let liveUpdateInterval;
+
         // Reference to the subscribers node in your database
         const subscribersRef = ref(database, 'subscribers');
 
@@ -122,6 +189,26 @@
                     const newRow = subscribersTable.insertRow();
                     newRow.insertCell(0).innerText = subscriber.name;
                     newRow.insertCell(1).innerText = subscriber.count;
+
+                    // Add click event to show modal with live subscriber count
+                    newRow.onclick = () => {
+                        modal.style.display = "flex";
+                        modalChannelName.innerText = subscriber.name;
+
+                        // Set up real-time subscriber count display with a 2-second interval
+                        clearInterval(liveUpdateInterval); // Clear any previous interval
+                        const subscriberRef = ref(database, `subscribers/${subscriber.name}/subscriberCount`);
+                        liveUpdateInterval = setInterval(() => {
+                            onValue(subscriberRef, (subSnapshot) => {
+                                if (subSnapshot.exists()) {
+                                    // Update odometer
+                                    modalSubscriberCount.innerText = subSnapshot.val();
+                                } else {
+                                    modalSubscriberCount.innerText = "No Count";
+                                }
+                            }, { onlyOnce: true });
+                        }, 2000);
+                    }
                 });
             } else {
                 const newRow = subscribersTable.insertRow();
@@ -129,6 +216,14 @@
                 newRow.insertCell(1).innerText = "";
             }
         });
+
+        // Close modal if clicking outside content
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+                clearInterval(liveUpdateInterval); // Clear interval when closing the modal
+            }
+        }
     </script>
 </body>
 </html>
