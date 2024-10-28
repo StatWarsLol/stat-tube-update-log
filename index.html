@@ -5,66 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscribers List</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+        /* Global Styles */
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, Asimov, Asimov, Asimov, Asimov, Asimov, Asimov;
             display: flex;
             flex-direction: column;
             align-items: center;
+            color: #333;
+            background: #f8f8f9;
+            margin: 0;
+            padding: 20px;
         }
 
         h1 {
+            color: #333;
             font-size: 2em;
-            color: #0073e6;
-            margin-bottom: 20px;
+            margin-bottom: 1em;
+            font-weight: 600;
+            letter-spacing: 1px;
+            animation: fadeIn 0.5s ease-out;
         }
 
-        table {
-            width: 100%;
-            max-width: 600px;
+        /* Table Styles */
+        #subscribersTable {
+            width: 80%;
+            margin: 20px 0;
             border-collapse: collapse;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
+            background: #fff;
             border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            animation: slideUp 0.7s ease-out;
+        }
+        #subscribersTable th, #subscribersTable td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        #subscribersTable th {
+            background-color: #007aff;
+            color: white;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        #subscribersTable td {
+            font-size: 1em;
+            color: #555;
+        }
+        #subscribersTable tr:hover {
+            background-color: rgba(0, 122, 255, 0.1);
+            transition: background-color 0.3s ease;
         }
 
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #0073e6;
-            color: #fff;
-            font-weight: bold;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f8f8f8;
-        }
-
-        tr:hover {
-            background-color: #e0f7ff;
+        /* Button Styles */
+        #compare-button {
+            margin-top: 15px;
+            padding: 12px 24px;
+            background-color: #007aff;
+            color: white;
+            border: none;
             cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+        #compare-button:hover {
+            background-color: #005bb5;
         }
 
-        .channel-name {
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        /* Warning Text */
+        #warning {
+            margin-top: 30px;
+            font-size: 0.85em;
+            color: #777;
+            text-align: center;
+            width: 80%;
+            line-height: 1.5;
         }
 
+        /* Verified Badge */
         .verified-badge {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            vertical-align: middle;
+            margin-left: 5px;
         }
 
-        #modal {
+        /* Modal Styles */
+        #compare-modal, #live-sub-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -75,47 +112,70 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            animation: fadeIn 0.4s ease;
         }
 
-        #modal-content {
+        .modal-content {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 300px;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            width: 500px;
+            max-width: 90%;
             text-align: center;
+            animation: scaleUp 0.5s ease-out;
         }
 
-        #modal-channel-name {
-            font-size: 1em;
-            color: #333;
+        .compare-container, .live-sub-count {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 1em;
         }
-
-        #modal-subscriber-count {
+        .compare-subscriber-count, .live-subscriber-count {
             font-size: 2.5em;
-            color: #000000;
+            color: #007aff;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 0.5em;
+            letter-spacing: 1px;
+        }
+        #gap-display {
+            margin-top: 15px;
+            font-size: 1.4em;
+            color: #555;
+            font-weight: 500;
         }
 
-        #close-btn {
+        /* Close Button */
+        #close-compare-btn, #close-live-sub-btn {
             cursor: pointer;
-            color: #0073e6;
-            margin-top: 10px;
+            color: #007aff;
+            margin-top: 15px;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        #close-compare-btn:hover, #close-live-sub-btn:hover {
+            color: #005bb5;
         }
 
-        #warning {
+        /* Chart */
+        #sub-graph {
             margin-top: 20px;
-            padding: 15px;
-            color: #d8000c;
-            background-color: #ffeded;
-            border: 1px solid #f44336;
-            font-size: 0.9em;
-            text-align: center;
-            border-radius: 5px;
-            width: 80%;
-            max-width: 600px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
@@ -124,6 +184,7 @@
     <table id="subscribersTable">
         <thead>
             <tr>
+                <th>Select</th>
                 <th>Channel Name</th>
                 <th>Subscriber Count</th>
             </tr>
@@ -133,20 +194,40 @@
         </tbody>
     </table>
 
+    <button id="compare-button">Compare Selected Channels</button>
+
     <div id="warning">
         I know you hacker people. If you try to hack into my Firebase database like Clicker Battles when it was vulnerable, you will get perma banned. First and last warning. Thanks.
     </div>
 
-    <!-- Modal for live subscriber count -->
-    <div id="modal">
-        <div id="modal-content">
-            <div id="modal-channel-name">Channel Name</div>
-            <div id="modal-subscriber-count" class="odometer">0</div>
-            <div id="close-btn">Close</div>
+    <!-- Comparison Modal -->
+    <div id="compare-modal">
+        <div class="modal-content">
+            <div class="compare-container">
+                <div class="compare-item">
+                    <div id="channel1-name">Channel 1</div>
+                    <div id="channel1-subscriber-count" class="compare-subscriber-count odometer">0</div>
+                </div>
+                <div class="compare-item">
+                    <div id="channel2-name">Channel 2</div>
+                    <div id="channel2-subscriber-count" class="compare-subscriber-count odometer">0</div>
+                </div>
+            </div>
+            <div id="gap-display" class="odometer">0</div>
+            <div id="close-compare-btn">Close</div>
         </div>
     </div>
 
-    <!-- Odometer JS Library -->
+    <!-- Live Subscriber Modal -->
+    <div id="live-sub-modal">
+        <div class="modal-content">
+            <div id="live-sub-name">Channel Name</div>
+            <div id="live-sub-count" class="live-subscriber-count odometer">0</div>
+            <canvas id="sub-graph" width="300" height="150"></canvas>
+            <div id="close-live-sub-btn">Close</div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
     <script type="module">
         // Firebase configuration
@@ -160,90 +241,164 @@
         appId: "1:264123777016:web:f4f8ec7402cd3093d9200d"
     };
 
-        // Import the Firebase modules
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
-        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-
-        // Modal elements
-        const modal = document.getElementById("modal");
-        const modalChannelName = document.getElementById("modal-channel-name");
-        const modalSubscriberCount = document.getElementById("modal-subscriber-count");
-        const closeBtn = document.getElementById("close-btn");
-
-        // Close modal function
-        closeBtn.onclick = () => {
-            modal.style.display = "none";
-            clearInterval(liveUpdateInterval); // Clear interval when closing the modal
-        }
-
-        let liveUpdateInterval;
-
-        // Reference to the subscribers node in your database
         const subscribersRef = ref(database, 'subscribers');
 
-        // Fetching and displaying subscriber data
+        const compareButton = document.getElementById("compare-button");
+        const compareModal = document.getElementById("compare-modal");
+        const liveSubModal = document.getElementById("live-sub-modal");
+        const closeCompareBtn = document.getElementById("close-compare-btn");
+        const closeLiveSubBtn = document.getElementById("close-live-sub-btn");
+
+        // Load and display subscriber data
         onValue(subscribersRef, (snapshot) => {
             const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
-            subscribersTable.innerHTML = ''; // Clear the table before updating
+            subscribersTable.innerHTML = '';
 
             if (snapshot.exists()) {
                 const subscribersData = snapshot.val();
                 const sortedData = Object.entries(subscribersData)
                     .map(([name, data]) => ({ name, count: data.subscriberCount || "No Count" }))
-                    .sort((a, b) => b.count - a.count); // Sort by subscriber count in descending order
+                    .sort((a, b) => b.count - a.count);
 
                 sortedData.forEach(subscriber => {
                     const newRow = subscribersTable.insertRow();
 
+                    // Checkbox for selection
+                    const checkboxCell = newRow.insertCell(0);
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkboxCell.appendChild(checkbox);
+
                     // Channel Name with Verified Badge for >100,000
-                    const nameCell = newRow.insertCell(0);
+                    const nameCell = newRow.insertCell(1);
                     nameCell.className = "channel-name";
                     nameCell.innerHTML = `${subscriber.name}`;
+                    nameCell.addEventListener("click", () => displayLiveSubCount(subscriber.name));
+
                     if (subscriber.count >= 100000) {
-                        nameCell.innerHTML += ' <img src="sigmasigma.png" alt="Verified" class="verified-badge">';
+                        nameCell.innerHTML += ' <img src="verified_badge.png" alt="Verified" class="verified-badge">';
                     }
 
                     // Subscriber Count
-                    newRow.insertCell(1).innerText = subscriber.count;
-
-                    // Add click event to show modal with live subscriber count
-                    newRow.onclick = () => {
-                        modal.style.display = "flex";
-                        modalChannelName.innerText = subscriber.name;
-
-                        // Set up real-time subscriber count display with a 2-second interval
-                        clearInterval(liveUpdateInterval); // Clear any previous interval
-                        const subscriberRef = ref(database, `subscribers/${subscriber.name}/subscriberCount`);
-                        liveUpdateInterval = setInterval(() => {
-                            onValue(subscriberRef, (subSnapshot) => {
-                                if (subSnapshot.exists()) {
-                                    // Update odometer
-                                    modalSubscriberCount.innerText = subSnapshot.val();
-                                } else {
-                                    modalSubscriberCount.innerText = "No Count";
-                                }
-                            }, { onlyOnce: true });
-                        }, 2000);
-                    }
+                    const countCell = newRow.insertCell(2);
+                    countCell.className = "subscriber-count odometer";
+                    countCell.innerText = subscriber.count;
                 });
             } else {
                 const newRow = subscribersTable.insertRow();
                 newRow.insertCell(0).innerText = "No subscribers found.";
                 newRow.insertCell(1).innerText = "";
+                newRow.insertCell(2).innerText = "";
             }
         });
 
-        // Close modal if clicking outside content
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-                clearInterval(liveUpdateInterval); // Clear interval when closing the modal
-            }
+        // Show live subscriber count for clicked channel
+        let liveSubData = [];
+let subChart;
+let liveSubInterval;
+
+function displayLiveSubCount(channelName) {
+    liveSubModal.style.display = "flex";
+    document.getElementById("live-sub-name").innerText = channelName;
+
+    const liveSubCountRef = ref(database, `subscribers/${channelName}/subscriberCount`);
+    let lastCount = null;
+
+    onValue(liveSubCountRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const newCount = snapshot.val();
+            document.getElementById("live-sub-count").innerText = newCount;
+
+            // Only add to liveSubData if there is a change in the subscriber count
+            lastCount = newCount;
         }
+    });
+
+    // Set up chart if it hasn't been initialized yet
+    if (!subChart) {
+        const ctx = document.getElementById("sub-graph").getContext("2d");
+        subChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Subscriber Count Over Time',
+                    data: [],
+                    borderColor: '#0073e6',
+                    backgroundColor: 'rgba(0, 115, 230, 0.2)',
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Time' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Subscribers' }
+                    }
+                }
+            }
+        });
+    }
+
+    // Clear any existing interval and start a new one for the live updates every 2 seconds
+    clearInterval(liveSubInterval);
+    liveSubInterval = setInterval(() => {
+        if (lastCount !== null) {
+            liveSubData.push(lastCount);
+            if (liveSubData.length > 20) liveSubData.shift(); // Limit to the latest 20 points
+            
+            // Update chart data and refresh
+            subChart.data.labels = Array.from({ length: liveSubData.length }, (_, i) => i + 1);
+            subChart.data.datasets[0].data = liveSubData;
+            subChart.update();
+        }
+    }, 2000);
+}
+
+// Close button for live subscriber modal
+closeLiveSubBtn.onclick = () => {
+    liveSubModal.style.display = "none";
+    clearInterval(liveSubInterval); // Stop updates when the modal is closed
+    liveSubData = [];               // Reset data for a fresh start
+    if (subChart) subChart.destroy();
+    subChart = null;
+};
+        
+        // Compare button click to show comparison modal
+        compareButton.addEventListener("click", () => {
+            const checkedRows = Array.from(document.querySelectorAll('#subscribersTable tbody input[type="checkbox"]:checked')).map(checkbox => checkbox.closest('tr'));
+            if (checkedRows.length === 2) {
+                const [channel1Row, channel2Row] = checkedRows;
+
+                const channel1Name = channel1Row.cells[1].textContent;
+                const channel1Count = parseInt(channel1Row.cells[2].textContent.replace(/,/g, ''), 10);
+
+                const channel2Name = channel2Row.cells[1].textContent;
+                const channel2Count = parseInt(channel2Row.cells[2].textContent.replace(/,/g, ''), 10);
+
+                document.getElementById("channel1-name").innerText = channel1Name;
+                document.getElementById("channel1-subscriber-count").innerText = channel1Count;
+                document.getElementById("channel2-name").innerText = channel2Name;
+                document.getElementById("channel2-subscriber-count").innerText = channel2Count;
+
+                // Calculate the gap with odometer animation
+                const gap = Math.abs(channel1Count - channel2Count);
+                document.getElementById("gap-display").innerText = gap;
+
+                compareModal.style.display = "flex";
+            }
+        });
+
+        closeCompareBtn.onclick = () => {
+            compareModal.style.display = "none";
+        };
     </script>
 </body>
 </html>
