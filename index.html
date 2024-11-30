@@ -341,7 +341,14 @@
             }
         });
 
-        connectButton.addEventListener('click', () => {
+        let connectionCodeGenerated = false; // Flag to track if a connection code has been generated
+
+connectButton.addEventListener('click', () => {
+    if (connectionCodeGenerated) {
+        alert("A connection code has already been generated for this session.");
+        return; // Prevent further attempts to generate a code
+    }
+
     const channelIdInput = prompt("Please enter your channel ID:");
     if (channelIdInput) {
         onValue(subscribersRef, (snapshot) => {
@@ -370,6 +377,7 @@
                             if (connectionCode) {
                                 // If connection already exists, alert the user
                                 alert("This channel is already connected! Your connection code is: " + connectionCode);
+                                connectionCodeGenerated = true; // Set flag to true
                             } else {
                                 // Generate a new connection code only once
                                 const newConnectionCode = generateConnectionCode();
@@ -380,6 +388,7 @@
                                     url: `https://www.youtube.com/channel/${data.channelId}` // Constructing the URL
                                 }).then(() => {
                                     alert("Channel Connected! Your connection code is: " + newConnectionCode);
+                                    connectionCodeGenerated = true; // Set flag to true
                                     // Start checking connection status
                                     checkConnectionStatus(newConnectionCode);
                                 }).catch((error) => {
@@ -387,7 +396,7 @@
                                 });
                             }
                         });
-                        break;
+                        break; // Exit the loop once the channel is found
                     }
                 }
 
