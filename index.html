@@ -298,7 +298,6 @@
         const closeLiveSubBtn = document.getElementById("close-live-sub-btn");
         const closeModal = document.getElementById("close-modal");
 
-        // Load and display subscriber data
         onValue(subscribersRef, (snapshot) => {
             const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
             subscribersTable.innerHTML = '';
@@ -464,7 +463,6 @@ document.getElementById("upload-video").addEventListener("click", () => {
                 }
             });
 
-            // Set up chart if it hasn't been initialized yet
             if (!subChart) {
                 const ctx = document.getElementById("sub-graph").getContext("2d");
                 subChart = new Chart(ctx, {
@@ -492,7 +490,6 @@ document.getElementById("upload-video").addEventListener("click", () => {
                 });
             }
 
-            // Clear any existing interval and start a new one for the live updates every 2 seconds
             clearInterval(liveSubInterval);
             liveSubInterval = setInterval(() => {
                 if (lastCount !== null) {
@@ -507,7 +504,6 @@ document.getElementById("upload-video").addEventListener("click", () => {
             }, 2000);
         }
 
-        // Close button for live subscriber modal
         closeLiveSubBtn.onclick = () => {
             liveSubModal.style.display = "none";
             clearInterval(liveSubInterval); // Stop updates when the modal is closed
@@ -516,31 +512,22 @@ document.getElementById("upload-video").addEventListener("click", () => {
             subChart = null
         };
 
-        // Close button for upload modal
         closeModal.onclick = () => {
             uploadModal.style.display = "none";
         };
 
-        // Event listeners for upload buttons
         document.getElementById("upload-video").addEventListener("click", () => {
-            // Handle video upload logic here
             alert("Video upload command sent: !video");
-            // Optionally send the command to the server or perform an action
         });
 
         document.getElementById("upload-short").addEventListener("click", () => {
-            // Handle short upload logic here
             alert("Short upload command sent: !short");
-            // Optionally send the command to the server or perform an action
         });
 
         document.getElementById("upload-livestream").addEventListener("click", () => {
-            // Handle livestream logic here
             alert("Livestream command sent: !livestream");
-            // Optionally send the command to the server or perform an action
         });
 
-        // Compare button click to show comparison modal
         compareButton.addEventListener("click", () => {
             const checkedRows = Array.from(document.querySelectorAll('#subscribersTable tbody input[type="checkbox"]:checked')).map(checkbox => checkbox.closest('tr'));
             if (checkedRows.length === 2) {
