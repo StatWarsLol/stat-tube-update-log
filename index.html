@@ -126,7 +126,8 @@
             animation: scaleUp 0.5s ease-out;
         }
 
-        .compare-container, .live-sub-count {
+        .compare-container, .live-sub ```html
+-count {
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -222,7 +223,7 @@
     </table>
 
     <button id="compare-button">Compare Selected Channels</button>
-    <button id="connect-button">Connect [Beta: Dosent fully work yet but 90% works]</button>
+    <button id="connect-button">Connect</button>
 
     <div id="warning">
         I know you hacker people. If you try to hack into my Firebase database like Clicker Battles when it was vulnerable, you will get perma banned. First and last warning. Thanks.
@@ -421,6 +422,25 @@ function checkConnectionStatus(connectionCode) {
         });
     }, 5000); // Check every 5 seconds
 }
+
+document.getElementById("upload-video").addEventListener("click", () => {
+    const channelIdInput = prompt("Please enter your channel ID Again for the video uploads:");
+    if (channelIdInput) {
+        const uploadedVideoRef = ref(database, `connections/${channelIdInput}/uploadedVideo`);
+
+        // Set uploadedVideo class to true
+        set(uploadedVideoRef, true).then(() => {
+            alert("Video upload command sent: !video");
+
+            // Remove uploadedVideo after 10 seconds
+            setTimeout(() => {
+                set(uploadedVideoRef, null); // Remove the uploadedVideo class
+            }, 10000);
+        }).catch((error) => {
+            console.error("Error uploading video:", error);
+        });
+    }
+});
 
         // Show live subscriber count for clicked channel
         let liveSubData = [];
