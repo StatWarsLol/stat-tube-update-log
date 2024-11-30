@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial="1.0">
     <title>Subscribers List</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
@@ -66,7 +66,7 @@
         }
 
         /* Button Styles */
-        #compare-button {
+        #compare-button, #connect-button {
             margin-top: 15px;
             padding: 12px 24px;
             background-color: #007aff;
@@ -79,7 +79,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s ease;
         }
-        #compare-button:hover {
+        #compare-button:hover, #connect-button:hover {
             background-color: #005bb5;
         }
 
@@ -101,7 +101,7 @@
         }
 
         /* Modal Styles */
-        #compare-modal, #live-sub-modal {
+        #compare-modal, #live-sub-modal, #uploadModal {
             display: none;
             position: fixed;
             top: 0;
@@ -126,7 +126,8 @@
             animation: scaleUp 0.5s ease-out;
         }
 
-        .compare-container, .live-sub-count {
+        .compare-container, .live-sub ```html
+-count {
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -147,7 +148,7 @@
         }
 
         /* Close Button */
-        #close-compare-btn, #close-live-sub-btn {
+        #close-compare-btn, #close-live-sub-btn, #close-modal {
             cursor: pointer;
             color: #007aff;
             margin-top: 15px;
@@ -155,13 +156,40 @@
             font-weight: 500;
             transition: color 0.3s;
         }
-        #close-compare-btn:hover, #close-live-sub-btn:hover {
+        #close-compare-btn:hover, #close-live-sub-btn:hover, #close-modal:hover {
             color: #005bb5;
         }
 
         /* Chart */
         #sub-graph {
             margin-top: 20px;
+        }
+
+        /* Upload Modal Styles */
+        #uploadModal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+        }
+
+        .modal-button {
+            margin: 5px;
+            padding: 10px 20px;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-button:hover {
+            background-color: #005bb5;
         }
 
         /* Animations */
@@ -195,6 +223,7 @@
     </table>
 
     <button id="compare-button">Compare Selected Channels</button>
+    <button id="connect-button">Connect [BETA: Dosent fully work yet]</button>
 
     <div id="warning">
         I know you hacker people. If you try to hack into my Firebase database like Clicker Battles when it was vulnerable, you will get perma banned. First and last warning. Thanks.
@@ -228,31 +257,46 @@
         </div>
     </div>
 
+    <!-- Upload Modal -->
+    <div id="uploadModal">
+        <div class="modal-content">
+            <h2>Upload Options</h2>
+            <button class="modal-button" id="upload-video">!video</button>
+            <button class="modal-button" id="upload-short">!short</button>
+            <button class="modal-button" id="upload-livestream">!livestream</button>
+            <button class="modal-button" id="close-modal">Close</button>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
     <script type="module">
         // Firebase configuration
         const firebaseConfig = {
-        apiKey: "AIzaSyAmlyuX61yuhkrOiuXiSeqUyLCu8coxW34",
-        authDomain: "stat-tube-4e85e.firebaseapp.com",
-        databaseURL: "https://stat-tube-4e85e-default-rtdb.firebaseio.com/",
-        projectId: "stat-tube-4e85e",
-        storageBucket: "stat-tube-4e85e.appspot.com",
-        messagingSenderId: "264123777016",
-        appId: "1:264123777016:web:f4f8ec7402cd3093d9200d"
-    };
+            apiKey: "AIzaSyAmlyuX61yuhkrOiuXiSeqUyLCu8coxW34",
+            authDomain: "stat-tube-4e85e.firebaseapp.com",
+            databaseURL: "https://stat-tube-4e85e-default-rtdb.firebaseio.com/",
+            projectId: "stat-tube-4e85e",
+            storageBucket: "stat-tube-4e85e.appspot.com",
+            messagingSenderId: "264123777016",
+            appId: "1:264123777016:web:f4f8ec7402cd3093d9200d"
+        };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
         const subscribersRef = ref(database, 'subscribers');
+        const connectionsRef = ref(database, 'connections');
 
         const compareButton = document.getElementById("compare-button");
+        const connectButton = document.getElementById("connect-button");
         const compareModal = document.getElementById("compare-modal");
         const liveSubModal = document.getElementById("live-sub-modal");
+        const uploadModal = document.getElementById("uploadModal");
         const closeCompareBtn = document.getElementById("close-compare-btn");
         const closeLiveSubBtn = document.getElementById("close-live-sub-btn");
+        const closeModal = document.getElementById("close-modal");
 
         // Load and display subscriber data
         onValue(subscribersRef, (snapshot) => {
@@ -297,80 +341,186 @@
             }
         });
 
-        // Show live subscriber count for clicked channel
-        let liveSubData = [];
-let subChart;
-let liveSubInterval;
+        connectButton.addEventListener('click', () => {
+    const channelIdInput = prompt("Please enter your channel ID:");
+    if (channelIdInput) {
+        onValue(subscribersRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const subscribersData = snapshot.val();
+                let found = false;
 
-function displayLiveSubCount(channelName) {
-    liveSubModal.style.display = "flex";
-    document.getElementById("live-sub-name").innerText = channelName;
+                // Loop through the subscribers to find the matching channelId
+                for (const [channelName, data] of Object.entries(subscribersData)) {
+                    if (data.channelId === channelIdInput) {
+                        found = true;
 
-    const liveSubCountRef = ref(database, `subscribers/${channelName}/subscriberCount`);
-    let lastCount = null;
+                        // Check if a connection already exists for this channelId
+                        onValue(connectionsRef, (connSnapshot) => {
+                            let connectionCode = null;
+                            if (connSnapshot.exists()) {
+                                const connectionsData = connSnapshot.val();
+                                for (const code in connectionsData) {
+                                    if (connectionsData[code].channelId === data.channelId) {
+                                        connectionCode = code; // Store the existing connection code
+                                        break;
+                                    }
+                                }
+                            }
 
-    onValue(liveSubCountRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const newCount = snapshot.val();
-            document.getElementById("live-sub-count").innerText = newCount;
+                            if (connectionCode) {
+                                // If connection already exists, alert the user
+                                alert("This channel is already connected! Your connection code is: " + connectionCode);
+                            } else {
+                                // Generate a new connection code only once
+                                const newConnectionCode = generateConnectionCode();
 
-            // Only add to liveSubData if there is a change in the subscriber count
-            lastCount = newCount;
-        }
-    });
-
-    // Set up chart if it hasn't been initialized yet
-    if (!subChart) {
-        const ctx = document.getElementById("sub-graph").getContext("2d");
-        subChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Subscriber Count Over Time',
-                    data: [],
-                    borderColor: '#0073e6',
-                    backgroundColor: 'rgba(0, 115, 230, 0.2)',
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        title: { display: true, text: 'Time' }
-                    },
-                    y: {
-                        title: { display: true, text: 'Subscribers' }
+                                // Set the connection in the database
+                                set(ref(database, `connections/${newConnectionCode}`), {
+                                    channelId: data.channelId,
+                                    url: `https://www.youtube.com/channel/${data.channelId}` // Constructing the URL
+                                }).then(() => {
+                                    alert("Channel Connected! Your connection code is: " + newConnectionCode);
+                                    // Start checking connection status
+                                    checkConnectionStatus(newConnectionCode);
+                                }).catch((error) => {
+                                    console.error("Error setting connection data:", error);
+                                });
+                            }
+                        });
+                        break;
                     }
                 }
+
+                if (!found) {
+                    alert("Channel ID not found in the database.");
+                }
+            } else {
+                alert("No subscribers found in the database.");
             }
         });
     }
+});
 
-    // Clear any existing interval and start a new one for the live updates every 2 seconds
-    clearInterval(liveSubInterval);
-    liveSubInterval = setInterval(() => {
-        if (lastCount !== null) {
-            liveSubData.push(lastCount);
-            if (liveSubData.length > 20) liveSubData.shift(); // Limit to the latest 20 points
-            
-            // Update chart data and refresh
-            subChart.data.labels = Array.from({ length: liveSubData.length }, (_, i) => i + 1);
-            subChart.data.datasets[0].data = liveSubData;
-            subChart.update();
-        }
-    }, 2000);
+function generateConnectionCode() {
+    return Math.random().toString(36).substring(2, 10); // Generate a random code
 }
 
-// Close button for live subscriber modal
-closeLiveSubBtn.onclick = () => {
-    liveSubModal.style.display = "none";
-    clearInterval(liveSubInterval); // Stop updates when the modal is closed
-    liveSubData = [];               // Reset data for a fresh start
-    if (subChart) subChart.destroy();
-    subChart = null;
-};
-        
+function checkConnectionStatus(connectionCode) {
+    setInterval(async () => {
+        const connectionRef = ref(database, `connections/${connectionCode}`);
+        onValue(connectionRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const connectionData = snapshot.val();
+                if (connectionData.isConnected) {
+                    // Close the message box and show the upload modal
+                    uploadModal.style.display = "block";
+                } else {
+                    // Optionally handle the case where isConnected is false
+                    uploadModal.style.display = "none";
+                }
+            }
+        });
+    }, 5000); // Check every 5 seconds
+}
+
+        // Show live subscriber count for clicked channel
+        let liveSubData = [];
+        let subChart;
+        let liveSubInterval;
+
+        function displayLiveSubCount(channelName) {
+            liveSubModal.style.display = "flex";
+            document.getElementById("live-sub-name").innerText = channelName;
+
+            const liveSubCountRef = ref(database, `subscribers/${channelName}/subscriberCount`);
+            let lastCount = null;
+
+            onValue(liveSubCountRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const newCount = snapshot.val();
+                    document.getElementById("live-sub-count").innerText = newCount;
+
+                    // Only add to liveSubData if there is a change in the subscriber count
+                    lastCount = newCount;
+                }
+            });
+
+            // Set up chart if it hasn't been initialized yet
+            if (!subChart) {
+                const ctx = document.getElementById("sub-graph").getContext("2d");
+                subChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Subscriber Count Over Time',
+                            data: [],
+                            borderColor: '#0073e6',
+                            backgroundColor: 'rgba(0, 115, 230, 0.2)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Time' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Subscribers' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Clear any existing interval and start a new one for the live updates every 2 seconds
+            clearInterval(liveSubInterval);
+            liveSubInterval = setInterval(() => {
+                if (lastCount !== null) {
+                    liveSubData.push(lastCount);
+                    if (liveSubData.length > 20) liveSubData.shift(); // Limit to the latest 20 points
+                    
+                    // Update chart data and refresh
+                    subChart.data.labels = Array.from({ length: liveSubData.length }, (_, i) => i + 1);
+                    subChart.data.datasets[0].data = liveSubData;
+                    subChart.update();
+                }
+            }, 2000);
+        }
+
+        // Close button for live subscriber modal
+        closeLiveSubBtn.onclick = () => {
+            liveSubModal.style.display = "none";
+            clearInterval(liveSubInterval); // Stop updates when the modal is closed
+            liveSubData = [];               // Reset data for a fresh start
+            if (subChart) subChart.destroy();
+            subChart = null
+        };
+
+        // Close button for upload modal
+        closeModal.onclick = () => {
+            uploadModal.style.display = "none";
+        };
+
+        // Event listeners for upload buttons
+        document.getElementById("upload-video").addEventListener("click", () => {
+            // Handle video upload logic here
+            alert("Video upload command sent: !video");
+            // Optionally send the command to the server or perform an action
+        });
+
+        document.getElementById("upload-short").addEventListener("click", () => {
+            // Handle short upload logic here
+            alert("Short upload command sent: !short");
+            // Optionally send the command to the server or perform an action
+        });
+
+        document.getElementById("upload-livestream").addEventListener("click", () => {
+            // Handle livestream logic here
+            alert("Livestream command sent: !livestream");
+            // Optionally send the command to the server or perform an action
+        });
+
         // Compare button click to show comparison modal
         compareButton.addEventListener("click", () => {
             const checkedRows = Array.from(document.querySelectorAll('#subscribersTable tbody input[type="checkbox"]:checked')).map(checkbox => checkbox.closest('tr'));
