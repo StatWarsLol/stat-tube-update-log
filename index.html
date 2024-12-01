@@ -205,6 +205,27 @@
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
+
+.custom-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
     </style>
 </head>
 <body>
@@ -257,13 +278,38 @@
         </div>
     </div>
 
+    <!-- Custom Alert Modal -->
+<div id="custom-alert" class="custom-modal">
+    <div class="modal-content">
+        <p id="alert-message"></p>
+        <button id="alert-ok">OK</button>
+    </div>
+</div>
+
+<!-- Custom Prompt Modal -->
+<div id="custom-prompt" class="custom-modal">
+    <div class="modal-content">
+        <p id="prompt-message"></p>
+        <input type="text" id="prompt-input" />
+        <button id="prompt-ok">OK</button>
+        <button id="prompt-cancel">Cancel</button>
+    </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div id="custom-confirm" class="custom-modal">
+    <div class="modal-content">
+        <p id="confirm-message"></p>
+        <button id="confirm-ok">OK</button>
+        <button id="confirm-cancel">Cancel</button>
+    </div>
+</div>
+
     <!-- Upload Modal -->
     <div id="uploadModal">
         <div class="modal-content">
-            <h2>Upload Options</h2>
-            <button class="modal-button" id="upload-video">!video</button>
-            <button class="modal-button" id="upload-short">!short</button>
-            <button class="modal-button" id="upload-livestream">!livestream</button>
+            <h2>Boost Channels on CT</h2>
+            <button class="modal-button" id="upload-video">!help</button>
             <button class="modal-button" id="close-modal">Close</button>
         </div>
     </div>
@@ -302,6 +348,17 @@
         onValue(subscribersRef, (snapshot) => {
             const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
             subscribersTable.innerHTML = '';
+function customAlert(message) {
+    return new Promise((resolve) => {
+        document.getElementById("alert-message").innerText = message;
+        document.getElementById("custom-alert").style.display = "flex";
+
+        document.getElementById("alert-ok").onclick = () => {
+            document.getElementById("custom-alert").style.display = "none";
+            resolve();
+        };
+    });
+}
 
             if (snapshot.exists()) {
                 const subscribersData = snapshot.val();
@@ -341,97 +398,6 @@
             }
         });
 
-        let connectionCodeGenerated = false; // Flag to track if a connection code has been generated
-
-connectButton.addEventListener('click', () => {
-    if (connectionCodeGenerated) {
-        alert("A connection code has already been generated for this session.");
-        return; // Prevent further attempts to generate a code
-    }
-
-    const channelIdInput = prompt("Please enter your channel ID:");
-    if (channelIdInput) {
-        onValue(subscribersRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const subscribersData = snapshot.val();
-                let found = false;
-
-                // Loop through the subscribers to find the matching channelId
-                for (const [channelName, data] of Object.entries(subscribersData)) {
-                    if (data.channelId === channelIdInput) {
-                        found = true;
-
-                        // Check if a connection already exists for this channelId
-                        onValue(connectionsRef, (connSnapshot) => {
-                            let connectionCode = null;
-                            if (connSnapshot.exists()) {
-                                const connectionsData = connSnapshot.val();
-                                for (const code in connectionsData) {
-                                    if (connectionsData[code].channelId === data.channelId) {
-                                        connectionCode = code; // Store the existing connection code
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (connectionCode) {
-                                // If connection already exists, alert the user
-                                alert("This channel is already connected! Your connection code is: " + connectionCode);
-                                connectionCodeGenerated = true; // Set flag to true
-                            } else {
-                                // Generate a new connection code only once
-                                const newConnectionCode = generateConnectionCode();
-
-                                // Set the connection in the database
-                                set(ref(database, `connections/${newConnectionCode}`), {
-                                    channelId: data.channelId,
-                                    url: `https://www.youtube.com/channel/${data.channelId}` // Constructing the URL
-                                }).then(() => {
-                                    alert("Channel Connected! Your connection code is: " + newConnectionCode);
-                                    connectionCodeGenerated = true; // Set flag to true
-                                    // Start checking connection status
-                                    checkConnectionStatus(newConnectionCode);
-                                }).catch((error) => {
-                                    console.error("Error setting connection data:", error);
-                                });
-                            }
-                        });
-                        break; // Exit the loop once the channel is found
-                    }
-                }
-
-                if (!found) {
-                    alert("Channel ID not found in the database.");
-                }
-            } else {
-                alert("No subscribers found in the database.");
-            }
-        });
-    }
-});
-
-function generateConnectionCode() {
-    return Math.random().toString(36).substring(2, 10); // Generate a random code
-}
-
-function checkConnectionStatus(connectionCode) {
-    setInterval(async () => {
-        const connectionRef = ref(database, `connections/${connectionCode}`);
-        onValue(connectionRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const connectionData = snapshot.val();
-                if (connectionData.isConnected) {
-                    // Close the message box and show the upload modal
-                    uploadModal.style.display = "block";
-                } else {
-                    // Optionally handle the case where isConnected is false
-                    uploadModal.style.display = "none";
-                }
-            }
-        });
-    }, 5000); // Check every 5 seconds
-}
-
 document.getElementById("upload-video").addEventListener("click", () => {
     const channelIdInput = prompt("Please enter your channel ID Again for the video uploads:");
     if (channelIdInput) {
@@ -439,7 +405,7 @@ document.getElementById("upload-video").addEventListener("click", () => {
 
         // Set uploadedVideo class to true
         set(uploadedVideoRef, true).then(() => {
-            alert("Video upload command sent: !video");
+            alert("!help has a cooldown of 10 seconds, and will only register every 10 seconds. 90-100 subs");
 
             // Remove uploadedVideo after 10 seconds
             setTimeout(() => {
@@ -525,6 +491,11 @@ document.getElementById("upload-video").addEventListener("click", () => {
             subChart = null
         };
 
+// Close button for upload modal
+        connectButton.onclick = () => {
+            uploadModal.style.display = "block";
+        };
+
         // Close button for upload modal
         closeModal.onclick = () => {
             uploadModal.style.display = "none";
@@ -533,7 +504,7 @@ document.getElementById("upload-video").addEventListener("click", () => {
         // Event listeners for upload buttons
         document.getElementById("upload-video").addEventListener("click", () => {
             // Handle video upload logic here
-            alert("Video upload command sent: !video");
+            alert("Subscribers sent to help. !help");
             // Optionally send the command to the server or perform an action
         });
 
