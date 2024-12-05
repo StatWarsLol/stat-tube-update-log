@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channel Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .channel-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+
+        .channel-info p {
+            font-size: 1.2em;
+            color: #555;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007aff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        a:hover {
+            background-color: #005bb5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Channel Details</h1>
+    <div class="channel-info">
+        <p id="channel-username">Username: <span></span></p>
+        <p id="channel-subscriber-count">Subscribers: <span></span></p>
+    </div>
+    <a href="index.html">Back to Home</a>
+
+    <script type="module">
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmlyuX61yuhkrOiuXiSeqUyLCu8coxW34",
+            authDomain: "stat-tube-4e85e.firebaseapp.com",
+            databaseURL: "https://stat-tube-4e85e-default-rtdb.firebaseio.com/",
+            projectId: "stat-tube-4e85e",
+            storageBucket: "stat-tube-4e85e.appspot.com",
+            messagingSenderId: "264123777016",
+            appId: "1:264123777016:web:f4f8ec7402cd3093d9200d"
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Function to get URL parameters
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const regex = /([^&=]+)=([^&]*)/g;
+            let m;
+
+            while (m = regex.exec(queryString)) {
+                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+            }
+            return params;
+        }
+
+        // Get the username from the URL
+        const params = getQueryParams();
+        const username = params.username || "Unknown User";
+
+        // Display the username
+        document.querySelector("#channel-username span").innerText = username;
+
+        // Fetch subscriber count from Firebase
+        const subscriberCountRef = ref(database, `subscribers/${username}/subscriberCount`);
+        onValue(subscriberCountRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const subscriberCount = snapshot.val();
+                document.querySelector("#channel-subscriber-count span").innerText = subscriberCount;
+            } else {
+                document.querySelector("#channel-subscriber-count span").innerText = "No data available";
+            }
+        });
+    </script>
+</body>
+</html>
