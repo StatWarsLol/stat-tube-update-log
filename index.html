@@ -231,11 +231,15 @@
     <h1>Subscribers List</h1>
     <table id="subscribersTable">
         <thead>
-            <tr>
-                <th>Select</th>
-                <th>Channel Name</th>
-                <th>Subscriber Count</th>
-            </tr>
+            <thead>
+    <tr>
+        <th>Select</th>
+        <th>Profile Picture</th>
+        <th>Channel Name</th>
+        <th>Subscriber Count</th> <!-- New header for profile picture -->
+        
+    </tr>
+</thead>
         </thead>
         <tbody>
             <!-- Subscriber data will be inserted here -->
@@ -346,46 +350,66 @@
         const closeModal = document.getElementById("close-modal");
 
         // Load and display subscriber data
-        onValue(subscribersRef, (snapshot) => {
-            const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
-            subscribersTable.innerHTML = '';
-            if (snapshot.exists()) {
-                const subscribersData = snapshot.val();
-                const sortedData = Object.entries(subscribersData)
-                    .map(([name, data]) => ({ name, count: data.subscriberCount || "No Count" }))
-                    .sort((a, b) => b.count - a.count);
+onValue(subscribersRef, (snapshot) => {
+    const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
+    subscribersTable.innerHTML = '';
+    if (snapshot.exists()) {
+        const subscribersData = snapshot.val();
+        const sortedData = Object.entries(subscribersData)
+            .map(([name, data]) => ({
+                name,
+                count: data.subscriberCount || "No Count",
+                profilePicture: data.profilePicture || ""
+            }))
+            .sort((a, b) => b.count - a.count);
 
-                sortedData.forEach(subscriber => {
-                    const newRow = subscribersTable.insertRow();
+        sortedData.forEach(subscriber => {
+            const newRow = subscribersTable.insertRow();
 
-                    // Checkbox for selection
-                    const checkboxCell = newRow.insertCell(0);
-                    const checkbox = document.createElement("input");
-                    checkbox.type = "checkbox";
-                    checkboxCell.appendChild(checkbox);
+            // Checkbox for selection
+            const checkboxCell = newRow.insertCell(0);
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkboxCell.appendChild(checkbox);
 
-                    // Channel Name with Verified Badge for >100,000
-                    const nameCell = newRow.insertCell(1);
-                    nameCell.className = "channel-name";
-                    nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(subscriber.name)}" target="_blank">${subscriber.name}</a>`;
-                    nameCell.addEventListener("click", () => displayLiveSubCount(subscriber.name));
-
-                    if (subscriber.count >= 100000) {
-                        nameCell.innerHTML += ' <img src="sigmasigma.png" alt="Verified" class="verified-badge">';
-                    }
-
-                    // Subscriber Count
-                    const countCell = newRow.insertCell(2);
-                    countCell.className = "subscriber-count odometer";
-                    countCell.innerText = subscriber.count;
-                });
+            // Profile Picture
+            const pictureCell = newRow.insertCell(1); // Move profile picture to the first cell
+            const decodedUrl = decodeURIComponent(subscriber.profilePicture); // Decode the URL
+            if (decodedUrl) {
+                const img = document.createElement("img");
+                img.src = decodedUrl;
+                img.alt = `${subscriber.name}'s Profile Picture`;
+                img.style.width = "50px"; // Set a width for the image
+                img.style.height = "50px"; // Set a height for the image
+                img.style.borderRadius = "50%"; // Make it circular
+                pictureCell.appendChild(img);
             } else {
-                const newRow = subscribersTable.insertRow();
-                newRow.insertCell(0).innerText = "No subscribers found.";
-                newRow.insertCell(1).innerText = "";
-                newRow.insertCell(2).innerText = "";
+                pictureCell.innerText = "No Image"; // Fallback if no image is available
             }
+
+            // Channel Name
+            const nameCell = newRow.insertCell(2); // Move channel name to the second cell
+            nameCell.className = "channel-name";
+            nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(subscriber.name)}" target="_blank">${subscriber.name}</a>`;
+            nameCell.addEventListener("click", () => displayLiveSubCount(subscriber.name));
+
+            if (parseInt(subscriber.count) >= 100000) {
+                nameCell.innerHTML += ' <img src="sigmasigma.png" alt="Verified" class="verified-badge">';
+            }
+
+            // Subscriber Count
+            const countCell = newRow.insertCell(3); // Move subscriber count to the third cell
+            countCell.className = "subscriber-count odometer";
+            countCell.innerText = subscriber.count;
         });
+    } else {
+        const newRow = subscribersTable.insertRow();
+        newRow.insertCell(0).innerText = "No subscribers found.";
+        newRow.insertCell(1).innerText = "";
+        newRow.insertCell(2).innerText = "";
+        newRow.insertCell(3).innerText = ""; // Add an empty cell for the profile picture
+    }
+});
 
         document.getElementById("upload-video").addEventListener("click", () => {
             const channelIdInput = prompt("Please enter your channel ID Again for the video uploads:");
