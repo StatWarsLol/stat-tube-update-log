@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CT Estimated Release [GLOBAL]4</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.min.css">
+    <style>
+        body {
+            font-family: Asimov, sans-serif;
+            text-align: center;
+            background-color: #282c34;
+            color: white;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .unit {
+            text-align: center;
+        }
+        .number {
+            font-size: 4rem;
+            background: #444;
+            border-radius: 10px;
+            padding: 20px;
+            display: inline-block;
+            min-width: 100px;
+        }
+        .label {
+            margin-top: 10px;
+            font-size: 1.2rem;
+        }
+        .odometer {
+            transition: all 1.5s ease;
+        }
+
+        .odometer.odometer-auto-theme, .odometer.odometer-theme-default {
+            font-family: Asimov, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>CT 1.00 Estimated Release</h1>
+    <div class="countdown">
+        <div class="unit">
+            <div class="number odometer" id="days">0</div>
+            <div class="label">Days</div>
+        </div>
+        <div class="unit">
+            <div class="number odometer" id="hours">0</div>
+            <div class="label">Hours</div>
+        </div>
+        <div class="unit">
+            <div class="number odometer" id="minutes">0</div>
+            <div class="label">Minutes</div>
+        </div>
+        <div class="unit">
+            <div class="number odometer" id="seconds">0</div>
+            <div class="label">Seconds</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
+    <script>
+        function updateCountdown() {
+            const now = new Date();
+            const christmas = new Date('December 25, 2024 14:00:00');
+            const diff = christmas - now;
+
+            if (diff <= 0) {
+                document.querySelector('.countdown').innerHTML = '<h2>Merry Christmas!</h2>';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            updateNumber("days", days);
+            updateNumber("hours", hours);
+            updateNumber("minutes", minutes);
+            updateNumber("seconds", seconds - 1);
+        }
+
+        function updateNumber(id, value) {
+            const element = document.getElementById(id);
+            const currentValue = parseInt(element.innerText) || 0;
+
+            if (currentValue !== value) {
+                element.innerText = value;
+            }
+        }
+
+        setInterval(updateCountdown, 2000);
+    </script>
+</body>
+</html>
