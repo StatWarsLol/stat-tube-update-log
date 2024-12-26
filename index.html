@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Global Styles */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -34,7 +33,6 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        /* Table Styles */
         #subscribersTable {
             width: 80%;
             margin: 20px 0;
@@ -65,7 +63,6 @@
             transition: background-color 0.3s ease;
         }
 
-        /* Button Styles */
         #compare-button, #connect-button {
             margin-top: 15px;
             padding: 12px 24px;
@@ -83,7 +80,6 @@
             background-color: #005bb5;
         }
 
-        /* Warning Text */
         #warning {
             margin-top: 30px;
             font-size: 0.85em;
@@ -93,14 +89,12 @@
             line-height: 1.5;
         }
 
-        /* Verified Badge */
         .verified-badge {
             width: 18px;
             vertical-align: middle;
             margin-left: 5px;
         }
 
-        /* Modal Styles */
         #compare-modal, #live-sub-modal, #uploadModal {
             display: none;
             position: fixed;
@@ -146,7 +140,6 @@
             font-weight: 500;
         }
 
-        /* Close Button */
         #close-compare-btn, #close-live-sub-btn, #close-modal {
             cursor: pointer;
             color: #007aff;
@@ -159,12 +152,10 @@
             color: #005bb5;
         }
 
-        /* Chart */
         #sub-graph {
             margin-top: 20px;
         }
 
-        /* Upload Modal Styles */
         #uploadModal {
             display: none; /* Hidden by default */
             position: fixed;
@@ -191,7 +182,6 @@
             background-color: #005bb5;
         }
 
-        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -242,7 +232,7 @@
 </thead>
         </thead>
         <tbody>
-            <!-- Subscriber data will be inserted here -->
+            <!-- easter egg hehe merry rizzmas 💀 -->
         </tbody>
     </table>
 
@@ -267,7 +257,6 @@
         </div>
     </div>
 
-    <!-- Live Subscriber Modal -->
     <div id="live-sub-modal">
         <div class="modal-content">
             <div id="live-sub-name">Channel Name</div>
@@ -277,7 +266,6 @@
         </div>
     </div>
 
-    <!-- Custom Alert Modal -->
     <div id="custom-alert" class="custom-modal">
         <div class="modal-content">
             <p id="alert-message"></p>
@@ -285,7 +273,6 @@
         </div>
     </div>
 
-    <!-- Custom Prompt Modal -->
     <div id="custom-prompt" class="custom-modal">
         <div class="modal-content">
             <p id="prompt-message"></p>
@@ -295,7 +282,6 @@
         </div>
     </div>
 
-    <!-- Custom Confirm Modal -->
     <div id="custom-confirm" class="custom-modal">
         <div class="modal-content">
             <p id="confirm-message"></p>
@@ -304,7 +290,6 @@
         </div>
     </div>
 
-    <!-- Upload Modal -->
     <div id="uploadModal">
         <div class="modal-content">
             <h2>Boost Channels on CT</h2>
@@ -344,7 +329,6 @@
         const closeLiveSubBtn = document.getElementById("close-live-sub-btn");
         const closeModal = document.getElementById("close-modal");
 
-        // Load and display subscriber data
 onValue(subscribersRef, (snapshot) => {
     const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
     subscribersTable.innerHTML = '';
@@ -361,13 +345,11 @@ onValue(subscribersRef, (snapshot) => {
         sortedData.forEach(subscriber => {
             const newRow = subscribersTable.insertRow();
 
-            // Checkbox for selection
             const checkboxCell = newRow.insertCell(0);
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
             checkboxCell.appendChild(checkbox);
-
-            // Profile Picture
+            
             const pictureCell = newRow.insertCell(1); // Move profile picture to the first cell
             const decodedUrl = decodeURIComponent(subscriber.profilePicture); // Decode the URL
             if (decodedUrl) {
@@ -382,7 +364,6 @@ onValue(subscribersRef, (snapshot) => {
                 pictureCell.innerText = "No Image"; // Fallback if no image is available
             }
 
-            // Channel Name
             const nameCell = newRow.insertCell(2); // Move channel name to the second cell
             nameCell.className = "channel-name";
             nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(subscriber.name)}" target="_blank">${subscriber.name}</a>`;
@@ -392,7 +373,6 @@ onValue(subscribersRef, (snapshot) => {
                 nameCell.innerHTML += ' <img src="sigmasigma.png" alt="Verified" class="verified-badge">';
             }
 
-            // Subscriber Count
             const countCell = newRow.insertCell(3); // Move subscriber count to the third cell
             countCell.className = "subscriber-count odometer";
             countCell.innerText = subscriber.count;
@@ -425,7 +405,6 @@ onValue(subscribersRef, (snapshot) => {
             }
         });
 
-        // Show live subscriber count for clicked channel
         let liveSubData = [];
         let subChart;
         let liveSubInterval;
@@ -441,13 +420,10 @@ onValue(subscribersRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const newCount = snapshot.val();
                     document.getElementById("live-sub-count").innerText = newCount;
-
-                    // Only add to liveSubData if there is a change in the subscriber count
                     lastCount = newCount;
                 }
             });
 
-            // Set up chart if it hasn't been initialized yet
             if (!subChart) {
                 const ctx = document.getElementById("sub-graph").getContext("2d");
                 subChart = new Chart(ctx, {
@@ -475,7 +451,6 @@ onValue(subscribersRef, (snapshot) => {
                 });
             }
 
-            // Clear any existing interval and start a new one for the live updates every 2 seconds
             clearInterval(liveSubInterval);
             liveSubInterval = setInterval(() => {
                 if (lastCount !== null) {
@@ -490,7 +465,6 @@ onValue(subscribersRef, (snapshot) => {
             }, 2000);
         }
 
-        // Close button for live subscriber modal
         closeLiveSubBtn.onclick = () => {
             liveSubModal.style.display = " none";
             clearInterval(liveSubInterval); // Stop updates when the modal is closed
@@ -499,36 +473,21 @@ onValue(subscribersRef, (snapshot) => {
             subChart = null;
         };
 
-        // Close button for upload modal
         connectButton.onclick = () => {
             uploadModal.style.display = "block";
         };
 
-        // Close button for upload modal
         closeModal.onclick = () => {
             uploadModal.style.display = "none";
         };
 
-        // Event listeners for upload buttons
         document.getElementById("upload-video").addEventListener("click", () => {
             // Handle video upload logic here
             alert("Subscribers sent to help. !help");
             // Optionally send the command to the server or perform an action
         });
 
-        document.getElementById("upload-short").addEventListener("click", () => {
-            // Handle short upload logic here
-            alert("Short upload command sent: !short");
-            // Optionally send the command to the server or perform an action
-        });
 
-        document.getElementById("upload-livestream").addEventListener("click", () => {
-            // Handle livestream logic here
-            alert("Livestream command sent: !livestream");
-            // Optionally send the command to the server or perform an action
-        });
-
-        // Compare button click to show comparison modal
         compareButton.addEventListener("click", () => {
             const checkedRows = Array.from(document.querySelectorAll('#subscribersTable tbody input[type="checkbox"]:checked')).map(checkbox => checkbox.closest('tr'));
             if (checkedRows.length === 2) {
