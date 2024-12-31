@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Global Styles */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -33,6 +34,7 @@
             animation: fadeIn 0.5s ease-out;
         }
 
+        /* Table Styles */
         #subscribersTable {
             width: 80%;
             margin: 20px 0;
@@ -63,6 +65,7 @@
             transition: background-color 0.3s ease;
         }
 
+        /* Button Styles */
         #compare-button, #connect-button {
             margin-top: 15px;
             padding: 12px 24px;
@@ -80,6 +83,7 @@
             background-color: #005bb5;
         }
 
+        /* Warning Text */
         #warning {
             margin-top: 30px;
             font-size: 0.85em;
@@ -89,12 +93,14 @@
             line-height: 1.5;
         }
 
+        /* Verified Badge */
         .verified-badge {
             width: 18px;
             vertical-align: middle;
             margin-left: 5px;
         }
 
+        /* Modal Styles */
         #compare-modal, #live-sub-modal, #uploadModal {
             display: none;
             position: fixed;
@@ -140,6 +146,7 @@
             font-weight: 500;
         }
 
+        /* Close Button */
         #close-compare-btn, #close-live-sub-btn, #close-modal {
             cursor: pointer;
             color: #007aff;
@@ -152,10 +159,12 @@
             color: #005bb5;
         }
 
+        /* Chart */
         #sub-graph {
             margin-top: 20px;
         }
 
+        /* Upload Modal Styles */
         #uploadModal {
             display: none; /* Hidden by default */
             position: fixed;
@@ -182,6 +191,7 @@
             background-color: #005bb5;
         }
 
+        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -223,6 +233,7 @@
         <thead>
             <thead>
     <tr>
+        <th>Ranking</th>
         <th>Select</th>
         <th>Profile Picture</th>
         <th>Channel Name</th>
@@ -232,13 +243,17 @@
 </thead>
         </thead>
         <tbody>
-            <!-- easter egg hehe merry rizzmas 💀 -->
+            <!-- Subscriber data will be inserted here -->
         </tbody>
     </table>
 
     <button id="compare-button">Compare Selected Channels</button>
     <button id="connect-button">Boost CT Channels [BETA]</button>
-    
+
+    <div id="warning">
+        I know you hacker people. If you try to hack into my Firebase database like Clicker Battles when it was vulnerable, you will get perma banned. First and last warning. Thanks.
+    </div>
+
     <!-- Comparison Modal -->
     <div id="compare-modal">
         <div class="modal-content">
@@ -257,6 +272,7 @@
         </div>
     </div>
 
+    <!-- Live Subscriber Modal -->
     <div id="live-sub-modal">
         <div class="modal-content">
             <div id="live-sub-name">Channel Name</div>
@@ -266,6 +282,7 @@
         </div>
     </div>
 
+    <!-- Custom Alert Modal -->
     <div id="custom-alert" class="custom-modal">
         <div class="modal-content">
             <p id="alert-message"></p>
@@ -273,6 +290,7 @@
         </div>
     </div>
 
+    <!-- Custom Prompt Modal -->
     <div id="custom-prompt" class="custom-modal">
         <div class="modal-content">
             <p id="prompt-message"></p>
@@ -282,6 +300,7 @@
         </div>
     </div>
 
+    <!-- Custom Confirm Modal -->
     <div id="custom-confirm" class="custom-modal">
         <div class="modal-content">
             <p id="confirm-message"></p>
@@ -290,6 +309,7 @@
         </div>
     </div>
 
+    <!-- Upload Modal -->
     <div id="uploadModal">
         <div class="modal-content">
             <h2>Boost Channels on CT</h2>
@@ -302,7 +322,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
     <script type="module">
-         const firebaseConfig = {
+        // Firebase configuration
+        const firebaseConfig = {
   apiKey: "AIzaSyAxcGfIacLUkWvq43ySHwNSQ2h3bybCoIM",
   authDomain: "chatroom1-de936.firebaseapp.com",
   databaseURL: "https://chatroom1-de936-default-rtdb.firebaseio.com",
@@ -312,7 +333,7 @@
   appId: "1:485449663477:web:966f39fc4ff32377be96bc",
   measurementId: "G-C97HQ1Y316"
 };
-        
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
@@ -330,6 +351,7 @@
         const closeLiveSubBtn = document.getElementById("close-live-sub-btn");
         const closeModal = document.getElementById("close-modal");
 
+        // Load and display subscriber data
 onValue(subscribersRef, (snapshot) => {
     const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
     subscribersTable.innerHTML = '';
@@ -343,15 +365,22 @@ onValue(subscribersRef, (snapshot) => {
             }))
             .sort((a, b) => b.count - a.count);
 
-        sortedData.forEach(subscriber => {
+        sortedData.forEach((subscriber, index) => {
             const newRow = subscribersTable.insertRow();
 
-            const checkboxCell = newRow.insertCell(0);
+            // Ranking (add "#" before the ranking number)
+            const rankingCell = newRow.insertCell(0);
+            rankingCell.className = "ranking";
+            rankingCell.innerText = `#${index + 1}`; // Add "#" before the ranking number
+
+            // Checkbox for selection
+            const checkboxCell = newRow.insertCell(1);
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
             checkboxCell.appendChild(checkbox);
-            
-            const pictureCell = newRow.insertCell(1); // Move profile picture to the first cell
+
+            // Profile Picture
+            const pictureCell = newRow.insertCell(2); // Move profile picture to the first cell
             const decodedUrl = decodeURIComponent(subscriber.profilePicture); // Decode the URL
             if (decodedUrl) {
                 const img = document.createElement("img");
@@ -365,7 +394,8 @@ onValue(subscribersRef, (snapshot) => {
                 pictureCell.innerText = "No Image"; // Fallback if no image is available
             }
 
-            const nameCell = newRow.insertCell(2); // Move channel name to the second cell
+            // Channel Name
+            const nameCell = newRow.insertCell(3); // Move channel name to the second cell
             nameCell.className = "channel-name";
             nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(subscriber.name)}" target="_blank">${subscriber.name}</a>`;
             nameCell.addEventListener("click", () => displayLiveSubCount(subscriber.name));
@@ -374,7 +404,8 @@ onValue(subscribersRef, (snapshot) => {
                 nameCell.innerHTML += ' <img src="sigmasigma.png" alt="Verified" class="verified-badge">';
             }
 
-            const countCell = newRow.insertCell(3); // Move subscriber count to the third cell
+            // Subscriber Count
+            const countCell = newRow.insertCell(4); // Move subscriber count to the third cell
             countCell.className = "subscriber-count odometer";
             countCell.innerText = subscriber.count;
         });
@@ -384,6 +415,7 @@ onValue(subscribersRef, (snapshot) => {
         newRow.insertCell(1).innerText = "";
         newRow.insertCell(2).innerText = "";
         newRow.insertCell(3).innerText = ""; // Add an empty cell for the profile picture
+        newRow.insertCell(4).innerText = ""; // Add an empty cell for the subscriber count
     }
 });
 
@@ -406,6 +438,7 @@ onValue(subscribersRef, (snapshot) => {
             }
         });
 
+        // Show live subscriber count for clicked channel
         let liveSubData = [];
         let subChart;
         let liveSubInterval;
@@ -421,10 +454,13 @@ onValue(subscribersRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const newCount = snapshot.val();
                     document.getElementById("live-sub-count").innerText = newCount;
+
+                    // Only add to liveSubData if there is a change in the subscriber count
                     lastCount = newCount;
                 }
             });
 
+            // Set up chart if it hasn't been initialized yet
             if (!subChart) {
                 const ctx = document.getElementById("sub-graph").getContext("2d");
                 subChart = new Chart(ctx, {
@@ -452,6 +488,7 @@ onValue(subscribersRef, (snapshot) => {
                 });
             }
 
+            // Clear any existing interval and start a new one for the live updates every 2 seconds
             clearInterval(liveSubInterval);
             liveSubInterval = setInterval(() => {
                 if (lastCount !== null) {
@@ -466,6 +503,7 @@ onValue(subscribersRef, (snapshot) => {
             }, 2000);
         }
 
+        // Close button for live subscriber modal
         closeLiveSubBtn.onclick = () => {
             liveSubModal.style.display = " none";
             clearInterval(liveSubInterval); // Stop updates when the modal is closed
@@ -474,21 +512,24 @@ onValue(subscribersRef, (snapshot) => {
             subChart = null;
         };
 
+        // Close button for upload modal
         connectButton.onclick = () => {
             uploadModal.style.display = "block";
         };
 
+        // Close button for upload modal
         closeModal.onclick = () => {
             uploadModal.style.display = "none";
         };
 
+        // Event listeners for upload buttons
         document.getElementById("upload-video").addEventListener("click", () => {
             // Handle video upload logic here
             alert("Subscribers sent to help. !help");
             // Optionally send the command to the server or perform an action
         });
 
-
+        // Compare button click to show comparison modal
         compareButton.addEventListener("click", () => {
             const checkedRows = Array.from(document.querySelectorAll('#subscribersTable tbody input[type="checkbox"]:checked')).map(checkbox => checkbox.closest('tr'));
             if (checkedRows.length === 2) {
