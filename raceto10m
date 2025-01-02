@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highlighted Channels with Gap and Target Comparison</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/odometer/themes/odometer-theme-minimal.css">
+    <style>
+        body {
+            font-family: Roboto, Arial, sans-serif;
+            background-color: #f9f9f9;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .channel {
+            display: inline-block;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .channel img {
+            border-radius: 50%;
+        }
+
+        .channel h1 {
+            margin: 10px 0;
+            font-size: 1.8rem;
+            font-weight: 400;
+        }
+
+        .odometer {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .target {
+            color: #888;
+            font-size: 1.2rem;
+            margin-top: 5px;
+        }
+
+        .highlighted {
+            font-size: 1.8rem;
+        }
+
+        .highlighted img {
+            width: 150px;
+            height: 150px;
+        }
+
+        .smaller {
+            font-size: 1.2rem;
+        }
+
+        .smaller img {
+            width: 80px;
+            height: 80px;
+        }
+
+        #gap-section {
+            margin-top: 30px;
+            font-size: 1.5rem;
+        }
+
+        #gap-counter {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        select, button {
+            font-size: 1.2rem;
+            padding: 8px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Highlighted Channels -->
+    <div class="channel highlighted" id="channel1">
+        <img id="profile-img1" src="https://via.placeholder.com/150" alt="Profile Picture 1">
+        <h1 id="username1">Loading...</h1>
+        <div id="subscriber-counter1" class="odometer">0</div>
+        <div id="target-counter1" class="odometer target">9999999</div>
+    </div>
+
+    <div class="channel highlighted" id="channel2">
+        <img id="profile-img2" src="https://via.placeholder.com/150" alt="Profile Picture 2">
+        <h1 id="username2">Loading...</h1>
+        <div id="subscriber-counter2" class="odometer">0</div>
+        <div id="target-counter2" class="odometer target">9999999</div>
+    </div>
+
+    <!-- Smaller Channels -->
+    <div class="channel smaller" id="channel3">
+        <img id="profile-img3" src="https://via.placeholder.com/80" alt="Profile Picture 3">
+        <h1 id="username3">Loading...</h1>
+        <div id="subscriber-counter3" class="odometer">0</div>
+        <div id="target-counter3" class="odometer target">9999999</div>
+    </div>
+
+    <div class="channel smaller" id="channel4">
+        <img id="profile-img4" src="https://via.placeholder.com/80" alt="Profile Picture 4">
+        <h1 id="username4">Loading...</h1>
+        <div id="subscriber-counter4" class="odometer">0</div>
+        <div id="target-counter4" class="odometer target">9999999</div>
+    </div>
+
+    <div class="channel smaller" id="channel5">
+        <img id="profile-img5" src="https://via.placeholder.com/80" alt="Profile Picture 5">
+        <h1 id="username5">Loading...</h1>
+        <div id="subscriber-counter5" class="odometer">0</div>
+        <div id="target-counter5" class="odometer target">9999999</div>
+    </div>
+
+    <!-- Gap Section -->
+    <div id="gap-section">
+        <select id="channel-select1">
+            <option value="1">Nigel</option>
+            <option value="2">Napa 2</option>
+            <option value="3">OmegaLayer</option>
+            <option value="4">boeing 747 stats</option>
+            <option value="5">ni xuizhen</option>
+        </select>
+        <select id="channel-select2">
+            <option value="1">Nigel</option>
+            <option value="2">Napa 2</option>
+            <option value="3">OmegaLayer</option>
+            <option value="4">boeing 747 stats</option>
+            <option value="5">ni xuizhen</option>
+        </select>
+        <button id="compare-btn">Compare</button>
+        <div id="gap-counter" class="odometer">0</div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxcGfIacLUkWvq43ySHwNSQ2h3bybCoIM",
+            authDomain: "chatroom1-de936.firebaseapp.com",
+            databaseURL: "https://chatroom1-de936-default-rtdb.firebaseio.com",
+            projectId: "chatroom1-de936",
+            storageBucket: "chatroom1-de936.appspot.com",
+            messagingSenderId: "485449663477",
+            appId: "1:485449663477:web:966f39fc4ff32377be96bc",
+            measurementId: "G-C97HQ1Y316"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let subscriberCounts = {};
+
+        async function fetchSubscriberData(username, channelNumber) {
+            const subscriberRef = ref(db, "subscribers");
+            const snapshot = await get(subscriberRef);
+            const data = snapshot.val();
+
+            if (data && data[username.trim()]) {
+                const userData = data[username.trim()];
+                document.getElementById(`profile-img${channelNumber}`).src = decodeURIComponent(userData.profilePicture);
+                document.getElementById(`username${channelNumber}`).textContent = username;
+
+                const subscriberCount = parseInt(userData.subscriberCount);
+                subscriberCounts[channelNumber] = subscriberCount;
+
+                // Update odometers for subscribers and target
+                document.getElementById(`subscriber-counter${channelNumber}`).innerHTML = subscriberCount;
+                document.getElementById(`target-counter${channelNumber}`).innerHTML = Math.max(0, 10000000 - subscriberCount);
+            } else {
+                console.warn(`User ${username} not found.`);
+                subscriberCounts[channelNumber] = 0;
+            }
+        }
+
+        async function updateChannels(usernames) {
+            for (let i = 0; i < usernames.length; i++) {
+                await fetchSubscriberData(usernames[i], i + 1);
+            }
+        }
+
+        function updateGap() {
+            const channel1 = parseInt(document.getElementById("channel-select1").value);
+            const channel2 = parseInt(document.getElementById("channel-select2").value);
+
+            const gap = Math.abs((subscriberCounts[channel1] || 0) - (subscriberCounts[channel2] || 0));
+            const gapCounter = document.getElementById("gap-counter");
+            gapCounter.innerHTML = gap; // Updates odometer for gap
+        }
+
+        async function startUpdating() {
+            const usernames = ["Nigel", "Napa 2", "OmegaLayer", "boeing 747 stats", "ni xiuzhen"];
+            await updateChannels(usernames);
+
+            setInterval(async () => {
+                await updateChannels(usernames);
+                updateGap();
+            }, 5000);
+        }
+
+        document.getElementById("compare-btn").addEventListener("click", updateGap);
+        startUpdating();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
+</body>
+</html>
