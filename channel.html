@@ -72,6 +72,12 @@
             margin: 5px 0; /* Space between lines */
         }
 
+        .activity {
+            font-size: 10px; /* Activity font size */
+            color: #bbb; /* Grayish color */
+            margin-left: 10px; /* Space between subscriber count and activity */
+        }
+
         .channel-link {
             font-size: 10px; /* Font size for the link */
             color: #bbb; /* Grayish color */
@@ -126,11 +132,11 @@
         Codename Trademark
     </div>
     <div class="channel-info">
-        <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/..." alt="Profile Picture" class="profile-picture" id="profile-picture">
+        <img src="data :image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/..." alt="Profile Picture" class="profile-picture" id="profile-picture">
         <div class="channel-details">
             <h2 id="channel-username"><span></span></h2>
-            <p>Subscribers: <span id="channel-subscriber-count"><span></span></span></p>
-            <p class="channel-link" id="current-page-link">https://stattube.xyz/channel.html?username=Dream%20wonders</ p>
+            <p>Subscribers: <span id="channel-subscriber-count"><span></span></span><span class="activity" id="activity-status">Activity: <span id="command-count">0</span></span></p>
+            <p class="channel-link" id="current-page-link">https://stattube.xyz/channel.html?username=Dream%20wonders</p>
         </div>
     </div>
     <a href="index.html">Back to Home</a>
@@ -177,6 +183,16 @@
                 document.querySelector("#channel-subscriber-count span").innerText = subscriberCount;
             } else {
                 document.querySelector("#channel-subscriber-count span").innerText = "No data available";
+            }
+        });
+
+        const commandCountRef = ref(database, `subscribers/${username}/userCommands`);
+        onValue(commandCountRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const commandCount = snapshot.val();
+                document.getElementById("command-count").innerText = commandCount;
+            } else {
+                document.getElementById("command-count").innerText = "0"; // Default value if no data
             }
         });
 
