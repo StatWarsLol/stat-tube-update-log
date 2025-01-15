@@ -34,6 +34,68 @@
             animation: fadeIn 0.5s ease-out;
         }
 
+/* Dark Mode Styles */
+body.dark-mode {
+    background: #333;
+    color: #ccc;
+}
+
+body.dark-mode h1 {
+    color: #fff;
+}
+
+body.dark-mode #subscribersTable {
+    background: #222;
+}
+
+body.dark-mode #subscribersTable th {
+    background-color: #005bb5;
+}
+
+body.dark-mode #subscribersTable td {
+    color: #bbb;
+}
+
+body.dark-mode #compare-button,
+body.dark-mode #connect-button {
+    background-color: #005bb5;
+}
+
+body.dark-mode #compare-button:hover,
+body.dark-mode #connect-button:hover {
+    background-color: #003d8f;
+}
+
+body.dark-mode .modal-content {
+    background: #444;
+    color: #fff;
+}
+
+body.dark-mode #gap-display,
+body.dark-mode .compare-subscriber-count {
+    color: #fff;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background: #111;
+    color: #111;
+}
+
+body.dark-mode h1 {
+    color: #fff;
+}
+
+body.dark-mode a {
+    color: white;  /* Change link color to white in dark mode */
+}
+
+body.dark-mode a:hover {
+    color: #f0f0f0;  /* Lighter color on hover */
+}
+
+/* Other dark mode styles here (same as before) */
+
         /* Table Styles */
         #subscribersTable {
             width: 80%;
@@ -250,6 +312,8 @@
     <button id="compare-button">Compare Selected Channels</button>
     <button id="connect-button">Boost CT Channels [BETA]</button>
 
+<button id="dark-mode-toggle">Toggle Dark Mode</button>
+
     <!-- Comparison Modal -->
     <div id="compare-modal">
         <div class="modal-content">
@@ -330,7 +394,10 @@
   measurementId: "G-RJMBETYQ8V"
 };
         
-        
+     
+document.getElementById('dark-mode-toggle').addEventListener('click', function () {
+    document.body.classList.toggle('dark-mode');
+});   
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
@@ -383,7 +450,7 @@ onValue(subscribersRef, (snapshot) => {
             if (decodedUrl) {
                 const img = document.createElement("img");
                 img.src = decodedUrl;
-                img.alt = `${subscriber.name}'s Profile Picture`;
+                img.alt = ``;
                 img.style.width = "50px"; // Set a width for the image
                 img.style.height = "50px"; // Set a height for the image
                 img.style.borderRadius = "50%"; // Make it circular
