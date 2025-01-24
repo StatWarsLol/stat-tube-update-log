@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Total Subscribers</title>
+
+  <!-- Include Odometer CSS and JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/odometer@0.4.6/themes/odometer-theme-default.css">
+  <script src="https://cdn.jsdelivr.net/npm/odometer@0.4.6/odometer.min.js"></script>
+
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    #subscriber-count, #gains-counter {
+      font-size: 3rem;
+      font-weight: bold;
+    }
+    #subscriber-count {
+      color: #000000;
+    }
+    #gains-counter {
+      color: #000000;
+    }
+  </style>
+</head>
+<body>
+  <h1>total subs</h1>
+  <div id="subscriber-count" class="odometer">0</div>
+
+  <h2>gains in the last update</h2>
+  <div id="gains-counter" class="odometer">0</div>
+
+  <script type="module">
+    // Import and initialize Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+    // Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBKRIZDQ94sxPZ3da2D9Ucfoxv4q2ZZF5c",
+  authDomain: "are-you-kidding-me.firebaseapp.com",
+  databaseURL: "https://are-you-kidding-me-default-rtdb.firebaseio.com",
+  projectId: "are-you-kidding-me",
+  storageBucket: "are-you-kidding-me.firebasestorage.app",
+  messagingSenderId: "667397289088",
+  appId: "1:667397289088:web:183293a42669f3b28d2265",
+  measurementId: "G-04QEYGW21K"
+};
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    let totalSubscribers = 0;
+    let previousSubscribers = 0;
+    let totalGains = 0;
+    let gainStartTime = Date.now();
+
+    async function updateTotalSubscribers() {
+      const dbRef = ref(database);
+      try {
+        const snapshot = await get(child(dbRef, 'subscribers')); // Adjusted to fetch from the 'subscribers' node
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+
+          // Calculate the total subscriber count from `subscriberCount`
+          const newTotal = Object.values(data || {}).reduce((acc, channel) => {
+            const subscriberCount = parseInt(channel.subscriberCount, 10) || 0;
+            return acc + subscriberCount;
+          }, 0);
+
+          // Only update if the total has changed to minimize unnecessary updates
+          if (newTotal !== totalSubscribers) {
+            const currentTime = Date.now();
+            const timeElapsed = currentTime - gainStartTime;
+
+            // Calculate gain for the last minute
+            if (timeElapsed >= 10000) {  // If 1 minute has passed
+              totalGains = newTotal - previousSubscribers;
+              document.getElementById('gains-counter').innerHTML = totalGains;
+              gainStartTime = currentTime;
+              previousSubscribers = newTotal;
+            }
+
+            totalSubscribers = newTotal;
+            document.getElementById('subscriber-count').innerHTML = totalSubscribers;
+          }
+        } else {
+          console.log("No data available in 'subscribers'");
+        }
+      } catch (error) {
+        console.error("Error fetching subscriber data: ", error);
+      }
+    }
+
+    // Update the total every 2 seconds
+    setInterval(updateTotalSubscribers, 2000);
+  </script>
+</body>
+</html>
