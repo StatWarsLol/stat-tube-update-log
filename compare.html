@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>even more based</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/odometer/themes/odometer-theme-default.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Roboto, Arial, sans-serif;
+            background: linear-gradient(to right, #002b36, #073642);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 20px;
+        }
+        .channel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .channel img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            border: 4px solid white;
+        }
+        .channel h1 {
+            margin: 10px 0;
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        .odometer {
+            font-size: 2rem;
+            font-weight: bold;
+            transition: color 0.5s ease;
+        }
+        .gap {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        input, button {
+            font-size: 1rem;
+            padding: 10px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        input {
+            width: 40%;
+        }
+        button {
+            background-color: #00e676;
+            color: black;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #00c853;
+        }
+    </style>
+</head>
+<body>
+    <h1>Compare StatTube Channels</h1>
+    <input type="text" id="channel1-name" placeholder="Enter first channel name">
+    <input type="text" id="channel2-name" placeholder="Enter second channel name">
+    <button id="compare-btn">Compare</button>
+    
+    <div class="container">
+        <div class="channel" id="channel1-display">
+            <img id="profile-img1" src="https://via.placeholder.com/100" alt="Profile Picture">
+            <h1 id="username1">Loading...</h1>
+            <div id="subscriber-counter1" class="odometer">0</div>
+        </div>
+        
+        <div class="channel" id="channel2-display">
+            <img id="profile-img2" src="https://via.placeholder.com/100" alt="Profile Picture">
+            <h1 id="username2">Loading...</h1>
+            <div id="subscriber-counter2" class="odometer">0</div>
+        </div>
+    </div>
+
+    <div class="gap" id="gap-display">
+        <div id="gap-odometer" class="odometer">0</div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKRIZDQ94sxPZ3da2D9Ucfoxv4q2ZZF5c",
+            authDomain: "are-you-kidding-me.firebaseapp.com",
+            databaseURL: "https://are-you-kidding-me-default-rtdb.firebaseio.com",
+            projectId: "are-you-kidding-me",
+            storageBucket: "are-you-kidding-me.firebasestorage.app",
+            messagingSenderId: "667397289088",
+            appId: "1:667397289088:web:183293a42669f3b28d2265",
+            measurementId: "G-04QEYGW21K"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let channel1 = "", channel2 = "";
+
+        async function fetchSubscriberData() {
+            if (!channel1 || !channel2) return;
+            const subscriberRef = ref(db, "subscribers");
+            const snapshot = await get(subscriberRef);
+            const data = snapshot.val();
+
+            if (data) {
+                const subscriberCount1 = updateChannelData("1", channel1, data);
+                const subscriberCount2 = updateChannelData("2", channel2, data);
+                updateGap(subscriberCount1, subscriberCount2);
+            }
+        }
+
+        function updateChannelData(id, channel, data) {
+            if (data[channel]) {
+                const userData = data[channel];
+                document.getElementById(`profile-img${id}`).src = decodeURIComponent(userData.profilePicture);
+                document.getElementById(`username${id}`).textContent = channel;
+                const subscriberCount = parseInt(userData.subscriberCount);
+                
+                const odometerElement = document.getElementById(`subscriber-counter${id}`);
+                odometerElement.innerHTML = subscriberCount;
+                return subscriberCount; // Return the subscriber count for gap calculation
+            }
+            return 0; // Return 0 if no data found
+        }
+
+        function updateGap(count1, count2) {
+            const gap = Math.abs(count1 - count2);
+            const gapOdometer = document.getElementById("gap-odometer");
+            gapOdometer.innerHTML = gap; // Update the gap odometer
+        }
+
+        document.getElementById("compare-btn").addEventListener("click", () => {
+            channel1 = document.getElementById("channel1-name").value.trim();
+            channel2 = document.getElementById("channel2-name").value.trim();
+            if (channel1 && channel2) {
+                fetchSubscriberData();
+                setInterval(fetchSubscriberData, 5000);
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
+</body>
+</html>
