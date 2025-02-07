@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Subscriber Counter</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/odometer/themes/odometer-theme-default.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Roboto, Arial, sans-serif;
+            background: linear-gradient(to right, #002b36, #073642);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .channel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .channel img {
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            border: 4px solid white;
+        }
+        .channel h1 {
+            margin: 10px 0;
+            font-size: 2rem;
+            font-weight: 500;
+        }
+        .odometer {
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            transition: color 0.5s ease; /* Smooth transition */
+        }
+        input, button {
+            font-size: 1rem;
+            padding: 10px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        input {
+            width: 60%;
+        }
+        button {
+            background-color: #00e676;
+            color: black;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #00c853;
+        }
+        #subscriber-graph {
+            margin-top: 30px;
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search for a StatTube Channel</h1>
+    <input type="text" id="channel-name" placeholder="Enter channel name">
+    <button id="search-btn">Search</button>
+
+    <div class="container">
+        <div class="channel" id="channel-display">
+            <img id="profile-img" src="https://via.placeholder.com/120" alt="Profile Picture">
+            <h1 id="username">Loading...</h1>
+            <div id="subscriber-counter" class="odometer">0</div>
+        </div>
+
+        <canvas id="subscriber-graph"></canvas>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKRIZDQ94sxPZ3da2D9Ucfoxv4q2ZZF5c",
+            authDomain: "are-you-kidding-me.firebaseapp.com",
+            databaseURL: "https://are-you-kidding-me-default-rtdb.firebaseio.com",
+            projectId: "are-you-kidding-me",
+            storageBucket: "are-you-kidding-me.firebasestorage.app",
+            messagingSenderId: "667397289088",
+            appId: "1:667397289088:web:183293a42669f3b28d2265",
+            measurementId: "G-04QEYGW21K"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let currentUsername = "";
+
+        const subscriberGraph = document.getElementById("subscriber-graph");
+        const graphCtx = subscriberGraph.getContext("2d");
+
+        let subscriberData = [];
+        let timeLabels = [];
+        let chartInstance = null;
+
+        async function fetchSubscriberData() {
+            if (!currentUsername) return;
+            const subscriberRef = ref(db, "subscribers");
+            const snapshot = await get(subscriberRef);
+            const data = snapshot.val();
+
+            if (data && data[currentUsername]) {
+                const userData = data[currentUsername];
+                document.getElementById("profile-img").src = decodeURIComponent(userData.profilePicture);
+                document.getElementById("username").textContent = currentUsername;
+                const subscriberCount = parseInt(userData.subscriberCount);
+
+                const odometerElement = document.getElementById("subscriber-counter");
+                const currentCount = parseInt(odometerElement.innerHTML);
+
+                // Check if the count is increasing or decreasing
+                if (subscriberCount > currentCount) {
+                    odometerElement.style.color = 'green';
+                } else if (subscriberCount < currentCount) {
+                    odometerElement.style.color = 'red';
+                } else {
+                    odometerElement.style.color = 'white';
+                }
+
+                // Update the counter text
+                odometerElement.innerHTML = subscriberCount;
+
+                // Update graph data
+                if (timeLabels.length >= 10) {
+                    timeLabels.shift();
+                    subscriberData.shift();
+                }
+
+                timeLabels.push(new Date().toLocaleTimeString());
+                subscriberData.push(subscriberCount);
+
+                updateGraph();
+            }
+        }
+
+        function updateGraph() {
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(graphCtx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: 'Subscriber Count',
+                        data: subscriberData,
+                        borderColor: 'white',
+                        backgroundColor: 'rgba(0, 230, 118, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 0 // Hide the points (bubbles)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: {
+                        duration: 0 // Disable the rising animation
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById("search-btn").addEventListener("click", () => {
+            const username = document.getElementById("channel-name").value.trim();
+            if (username) {
+                currentUsername = username;
+                fetchSubscriberData();
+                setInterval(fetchSubscriberData, 3000);
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
+</body>
+</html>
