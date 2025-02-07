@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>even more based</title>
+    <title>Compare Two Channels</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/odometer/themes/odometer-theme-default.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -47,7 +47,7 @@
             font-weight: bold;
             margin-top: 20px;
         }
-        input, button {
+        input, button, select {
             font-size: 1rem;
             padding: 10px;
             margin: 10px;
@@ -65,12 +65,44 @@
         button:hover {
             background-color: #00c853;
         }
+        .dropdown-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .dropdown {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            color: black;
+            border-radius: 5px;
+            z-index: 1;
+            margin-top: 5px;
+        }
+        .dropdown option {
+            background-color: #fff;
+            color: black;
+        }
     </style>
 </head>
 <body>
-    <h1>Compare StatTube Channels</h1>
-    <input type="text" id="channel1-name" placeholder="Enter first channel name">
-    <input type="text" id="channel2-name" placeholder="Enter second channel name">
+    <h1>Compare Two StatTube Channels</h1>
+    
+    <div style="position: relative;">
+        <button class="dropdown-button" id="channel1-button">emergency dropdown 1 (use if a channel isnt working typed)</button>
+        <select id="channel1-dropdown" class="dropdown"></select>
+        <input type="text" id="channel1-name" placeholder="Enter first channel name">
+    </div>
+    
+    <div style="position: relative;">
+        <button class="dropdown-button" id="channel2-button">emergency dropdown 1 (use if a channel isnt working typed)</button>
+        <select id="channel2-dropdown" class="dropdown"></select>
+        <input type="text" id="channel2-name" placeholder="Enter second channel name">
+    </div>
+    
     <button id="compare-btn">Compare</button>
     
     <div class="container">
@@ -109,22 +141,36 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         let channel1 = "", channel2 = "";
+        let updateInterval;
 
-        async function fetchSubscriberData() {
-            if (!channel1 || !channel2) return;
+        async function fetchChannels() {
+            const subscriberRef = ref(db, "subscribers");
+            const snapshot = await get(subscriberRef);
+            const data = snapshot.val();
+            const channel1Dropdown = document.getElementById("channel1-dropdown");
+            const channel2Dropdown = document.getElementById("channel2-dropdown");
+
+            if (data) {
+                Object.keys(data).forEach(channel => {
+                    const option1 = document.createElement("option");
+                    option1.value = channel; // Use the channel name as is
+                    option1.textContent = channel; // Use the channel name as is
+                    channel1Dropdown.appendChild(option1);
+
+                    const option2 = document.createElement("option");
+                    option2.value = channel; // Use the channel name as is
+                    option2.textContent = channel; // Use the channel name as is
+                    channel2Dropdown.appendChild(option2);
+                });
+            }
+        }
+
+        async function fetchSubscriberData(channel, id) {
             const subscriberRef = ref(db, "subscribers");
             const snapshot = await get(subscriberRef);
             const data = snapshot.val();
 
-            if (data) {
-                const subscriberCount1 = updateChannelData("1", channel1, data);
-                const subscriberCount2 = updateChannelData("2", channel2, data);
-                updateGap(subscriberCount1, subscriberCount2);
-            }
-        }
-
-        function updateChannelData(id, channel, data) {
-            if (data[channel]) {
+            if (data && data[channel]) {
                 const userData = data[channel];
                 document.getElementById(`profile-img${id}`).src = decodeURIComponent(userData.profilePicture);
                 document.getElementById(`username${id}`).textContent = channel;
@@ -137,20 +183,74 @@
             return 0; // Return 0 if no data found
         }
 
+        async function updateChannels() {
+            const subscriberCount1 = await fetchSubscriberData(channel1, "1");
+            const subscriberCount2 = await fetchSubscriberData(channel2, "2");
+            updateGap(subscriberCount1, subscriberCount2);
+        }
+
         function updateGap(count1, count2) {
             const gap = Math.abs(count1 - count2);
             const gapOdometer = document.getElementById("gap-odometer");
             gapOdometer.innerHTML = gap; // Update the gap odometer
         }
 
+        let channel1Interval, channel2Interval;
+
         document.getElementById("compare-btn").addEventListener("click", () => {
-            channel1 = document.getElementById("channel1-name").value.trim();
-            channel2 = document.getElementById("channel2-name").value.trim();
+            channel1 = document.getElementById("channel1-name").value || document.getElementById("channel1-dropdown").value;
+            channel2 = document.getElementById("channel2-name").value || document.getElementById("channel2-dropdown").value;
             if (channel1 && channel2) {
-                fetchSubscriberData();
-                setInterval(fetchSubscriberData, 5000);
+                updateChannels(); // Initial fetch
+                if (updateInterval) clearInterval(updateInterval); // Clear any existing interval
+                updateInterval = setInterval(updateChannels, 5000); // Set new interval
             }
         });
+
+        document.getElementById("channel1-button").addEventListener("click", () => {
+            const dropdown = document.getElementById("channel1-dropdown");
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+        });
+
+        document.getElementById("channel2-button").addEventListener("click", () => {
+            const dropdown = document.getElementById("channel2-dropdown");
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+        });
+
+        document.getElementById("channel1-dropdown").addEventListener("change", function() {
+            const selectedChannel = this.value; // Use the channel name as is
+            document.getElementById("channel1-name").value = selectedChannel;
+            this.style.display = "none"; // Hide dropdown after selection
+            fetchSubscriberData(selectedChannel, "1"); // Fetch data for channel 1
+
+            // Clear existing interval if any
+            if (channel1Interval) clearInterval(channel1Interval);
+            // Set interval to update channel 1 every 5 seconds
+            channel1Interval = setInterval(() => {
+                fetchSubscriberData(selectedChannel, "1").then(subscriberCount => {
+                    updateGap(subscriberCount, parseInt(document.getElementById('subscriber-counter2').innerHTML));
+                });
+            }, 5000);
+        });
+
+        document.getElementById("channel2-dropdown").addEventListener("change", function() {
+            const selectedChannel = this.value; // Use the channel name as is
+            document.getElementById("channel2-name").value = selectedChannel;
+            this.style.display = "none"; // Hide dropdown after selection
+            fetchSubscriberData(selectedChannel, "2"); // Fetch data for channel 2
+
+            // Clear existing interval if any
+            if (channel2Interval) clearInterval(channel2Interval);
+            // Set interval to update channel 2 every 5 seconds
+            channel2Interval = setInterval(() => {
+                fetchSubscriberData(selectedChannel, "2").then(subscriberCount => {
+                    updateGap(parseInt(document.getElementById('subscriber-counter1').innerHTML), subscriberCount);
+                });
+            }, 5000);
+        });
+
+        // Fetch channels on page load
+        fetchChannels();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
 </body>
