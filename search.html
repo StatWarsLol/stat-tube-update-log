@@ -43,7 +43,7 @@
             color: white;
             transition: color 0.5s ease; /* Smooth transition */
         }
-        input, button {
+        input, button, select {
             font-size: 1rem;
             padding: 10px;
             margin: 10px;
@@ -72,6 +72,10 @@
     <h1>Search for a StatTube Channel</h1>
     <input type="text" id="channel-name" placeholder="Enter channel name">
     <button id="search-btn">Search</button>
+
+    <select id="channel-dropdown" style="width: 60%; margin: 10px;">
+        <option value="">Select a channel</option>
+    </select>
 
     <div class="container">
         <div class="channel" id="channel-display">
@@ -108,6 +112,22 @@
         let subscriberData = [];
         let timeLabels = [];
         let chartInstance = null;
+
+        async function fetchChannels() {
+            const subscriberRef = ref(db, "subscribers");
+            const snapshot = await get(subscriberRef);
+            const data = snapshot.val();
+            const channelDropdown = document.getElementById("channel-dropdown");
+
+            if (data) {
+                Object.keys(data).forEach(channel => {
+                    const option = document.createElement("option");
+                    option.value = channel; // Use the channel name as is
+                    option.textContent = channel; // Use the channel name as is
+                    channelDropdown.appendChild(option);
+                });
+            }
+        }
 
         async function fetchSubscriberData() {
             if (!currentUsername) return;
@@ -193,13 +213,16 @@
         }
 
         document.getElementById("search-btn").addEventListener("click", () => {
-            const username = document.getElementById("channel-name").value.trim();
+            const username = document.getElementById("channel-name").value || document.getElementById("channel-dropdown").value;
             if (username) {
                 currentUsername = username;
                 fetchSubscriberData();
                 setInterval(fetchSubscriberData, 3000);
             }
         });
+
+        // Fetch channels on page load
+        fetchChannels();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
 </body>
