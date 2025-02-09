@@ -41,7 +41,7 @@
             font-size: 3rem;
             font-weight: bold;
             color: white;
-            transition: color 0.5s ease; /* Smooth transition */
+            transition: color 0.5s ease;
         }
         input, button, select {
             font-size: 1rem;
@@ -66,6 +66,13 @@
             width: 100%;
             height: 300px;
         }
+        .views-container {
+            margin-top: 20px;
+        }
+        .views-container h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +92,11 @@
         </div>
 
         <canvas id="subscriber-graph"></canvas>
+
+        <div class="views-container">
+            <h2>Views</h2>
+            <div id="views-counter" class="odometer">0</div>
+        </div>
     </div>
 
     <script type="module">
@@ -122,8 +134,8 @@
             if (data) {
                 Object.keys(data).forEach(channel => {
                     const option = document.createElement("option");
-                    option.value = channel; // Use the channel name as is
-                    option.textContent = channel; // Use the channel name as is
+                    option.value = channel;
+                    option.textContent = channel;
                     channelDropdown.appendChild(option);
                 });
             }
@@ -144,7 +156,6 @@
                 const odometerElement = document.getElementById("subscriber-counter");
                 const currentCount = parseInt(odometerElement.innerHTML);
 
-                // Check if the count is increasing or decreasing
                 if (subscriberCount > currentCount) {
                     odometerElement.style.color = 'green';
                 } else if (subscriberCount < currentCount) {
@@ -153,10 +164,8 @@
                     odometerElement.style.color = 'white';
                 }
 
-                // Update the counter text
                 odometerElement.innerHTML = subscriberCount;
 
-                // Update graph data
                 if (timeLabels.length >= 100) {
                     timeLabels.shift();
                     subscriberData.shift();
@@ -166,6 +175,18 @@
                 subscriberData.push(subscriberCount);
 
                 updateGraph();
+            }
+        }
+
+        async function fetchViewsData() {
+            if (!currentUsername) return;
+            const subscriberRef = ref(db, "subscribers");
+            const snapshot = await get(subscriberRef);
+            const data = snapshot.val();
+
+            if (data && data[currentUsername]) {
+                const userViews = parseInt(data[currentUsername].userViews || 0);
+                document.getElementById("views-counter").innerHTML = userViews;
             }
         }
 
@@ -185,13 +206,13 @@
                         backgroundColor: 'rgba(0, 230, 118, 0.2)',
                         borderWidth: 2,
                         tension: 0.4,
-                        pointRadius: 0 // Hide the points (bubbles)
+                        pointRadius: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     animation: {
-                        duration: 0 // Disable the rising animation
+                        duration: 0
                     },
                     scales: {
                         x: {
@@ -217,11 +238,12 @@
             if (username) {
                 currentUsername = username;
                 fetchSubscriberData();
+                fetchViewsData();
                 setInterval(fetchSubscriberData, 3000);
+                setInterval(fetchViewsData, 2000);
             }
         });
 
-        // Fetch channels on page load
         fetchChannels();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
