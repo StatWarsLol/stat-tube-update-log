@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fysc clicker</title>
+  <script src="https://cdn.jsdelivr.net/npm/odometer@0.4.6/odometer.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/odometer@0.4.6/themes/odometer-theme-default.css">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background-color: #000000;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #ffffff;
+      margin-bottom: 20px;
+    }
+
+    #clickCount {
+      font-size: 5rem;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 1.25rem;
+      color: #fff;
+      margin-bottom: 20px;
+      padding: 0 20px;
+    }
+
+    button {
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #2d87f0;
+      color: #111111;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: #1a5bb8;
+    }
+
+    .buttons-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .container {
+      text-align: center;
+      background-color: #111111;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      width: 80%;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>fysc clicker ✅</h1>
+    <p><span id="clickCount" class="odometer">0</span></p>
+    <p>enjoy lol</p>
+    
+    <div class="buttons-container">
+      <button id="videoButton">!video</button>
+      <button id="shortButton">!short</button>
+      <button id="viralButton">!viral</button>
+      <button id="trendingButton">!trending</button>
+      <button id="songButton">!song</button>
+      <button id="newsButton">!news</button>
+    </div>
+  </div>
+
+  <script>
+    // ok mr hacker man give it up
+    const firebaseConfig = {
+      apiKey: "AIzaSyDqTjYdo0b32o0rA4UOgktJrxxAGa5FmWs",
+      authDomain: "basedclicker2.firebaseapp.com",
+      databaseURL: "https://basedclicker2-default-rtdb.firebaseio.com",
+      projectId: "basedclicker2",
+      storageBucket: "basedclicker2.firebasestorage.app",
+      messagingSenderId: "948803084693",
+      appId: "1:948803084693:web:46d93bd84d378e1b01169c",
+      measurementId: "G-TK5XTGFP8B"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const clickCounterRef = database.ref('globalClickCount/count'); // Accessing the 'count' directly
+
+    clickCounterRef.on('value', (snapshot) => {
+      const count = snapshot.val() || 0; // Ensure a fallback of 0 if no value is found
+      document.getElementById('clickCount').innerText = count;
+      const odometer = new Odometer({ el: document.getElementById('clickCount') });
+      odometer.update(count);
+    });
+
+    const growthRef = database.ref('globalGrowth');
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    const buttonConfig = {
+      videoButton: { min: 100000, max: 125000 },
+      shortButton: { min: 100000, max: 150000 },
+      viralButton: { min: 125000, max: 150000 },
+      trendingButton: { min: 150000, max: 200000 },
+      songButton: { min: 80000, max: 110000 },
+      newsButton: { min: 90000, max: 130000 }
+    };
+
+    Object.keys(buttonConfig).forEach(buttonId => {
+      document.getElementById(buttonId).addEventListener('click', () => {
+        const { min, max } = buttonConfig[buttonId];
+        const increment = getRandomInt(min, max);
+        
+        const button = document.getElementById(buttonId);
+        button.disabled = true;
+
+        growthRef.transaction((currentGrowth) => {
+          return (currentGrowth || 0) + increment;
+        });
+
+        setTimeout(() => {
+          button.disabled = false;
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
