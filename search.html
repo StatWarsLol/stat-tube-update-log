@@ -100,152 +100,127 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+    let currentUsername = "";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBKRIZDQ94sxPZ3da2D9Ucfoxv4q2ZZF5c",
-            authDomain: "are-you-kidding-me.firebaseapp.com",
-            databaseURL: "https://are-you-kidding-me-default-rtdb.firebaseio.com",
-            projectId: "are-you-kidding-me",
-            storageBucket: "are-you-kidding-me.firebasestorage.app",
-            messagingSenderId: "667397289088",
-            appId: "1:667397289088:web:183293a42669f3b28d2265",
-            measurementId: "G-04QEYGW21K"
-        };
+    const subscriberGraph = document.getElementById("subscriber-graph");
+    const graphCtx = subscriberGraph.getContext("2d");
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        let currentUsername = "";
+    let subscriberData = [];
+    let timeLabels = [];
+    let chartInstance = null;
 
-        const subscriberGraph = document.getElementById("subscriber-graph");
-        const graphCtx = subscriberGraph.getContext("2d");
-
-        let subscriberData = [];
-        let timeLabels = [];
-        let chartInstance = null;
-
-        async function fetchChannels() {
-            const subscriberRef = ref(db, "subscribers");
-            const snapshot = await get(subscriberRef);
-            const data = snapshot.val();
+    async function fetchChannels() {
+        try {
+            const res = await fetch("https://api.stattube.xyz/");
+            const data = await res.json();
             const channelDropdown = document.getElementById("channel-dropdown");
 
-            if (data) {
-                Object.keys(data).forEach(channel => {
-                    const option = document.createElement("option");
-                    option.value = channel;
-                    option.textContent = channel;
-                    channelDropdown.appendChild(option);
-                });
+            Object.keys(data).forEach(channel => {
+                const option = document.createElement("option");
+                option.value = channel;
+                option.textContent = channel;
+                channelDropdown.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error fetching channels:", error);
+        }
+    }
+
+    async function fetchSubscriberData() {
+        if (!currentUsername) return;
+        try {
+            const res = await fetch(`https://api.stattube.xyz/${currentUsername}`);
+            const userData = await res.json();
+
+            document.getElementById("profile-img").src = decodeURIComponent(userData.profilePicture);
+            document.getElementById("username").textContent = currentUsername;
+
+            const subscriberCount = parseInt(userData.subscriberCount || 0);
+            const odometerElement = document.getElementById("subscriber-counter");
+            const currentCount = parseInt(odometerElement.innerHTML);
+
+            odometerElement.style.color = subscriberCount > currentCount ? 'green'
+                                      : subscriberCount < currentCount ? 'red'
+                                      : 'white';
+
+            odometerElement.innerHTML = subscriberCount;
+
+            if (timeLabels.length >= 100) {
+                timeLabels.shift();
+                subscriberData.shift();
             }
+
+            timeLabels.push(new Date().toLocaleTimeString());
+            subscriberData.push(subscriberCount);
+
+            updateGraph();
+        } catch (error) {
+            console.error("Error fetching subscriber data:", error);
+        }
+    }
+
+    async function fetchViewsData() {
+        if (!currentUsername) return;
+        try {
+            const res = await fetch(`https://api.stattube.xyz/${currentUsername}`);
+            const userData = await res.json();
+            const userViews = parseInt(userData.userViews || 0);
+            document.getElementById("views-counter").innerHTML = userViews;
+        } catch (error) {
+            console.error("Error fetching views data:", error);
+        }
+    }
+
+    function updateGraph() {
+        if (chartInstance) {
+            chartInstance.destroy();
         }
 
-        async function fetchSubscriberData() {
-            if (!currentUsername) return;
-            const subscriberRef = ref(db, "subscribers");
-            const snapshot = await get(subscriberRef);
-            const data = snapshot.val();
-
-            if (data && data[currentUsername]) {
-                const userData = data[currentUsername];
-                document.getElementById("profile-img").src = decodeURIComponent(userData.profilePicture);
-                document.getElementById("username").textContent = currentUsername;
-                const subscriberCount = parseInt(userData.subscriberCount);
-
-                const odometerElement = document.getElementById("subscriber-counter");
-                const currentCount = parseInt(odometerElement.innerHTML);
-
-                if (subscriberCount > currentCount) {
-                    odometerElement.style.color = 'green';
-                } else if (subscriberCount < currentCount) {
-                    odometerElement.style.color = 'red';
-                } else {
-                    odometerElement.style.color = 'white';
-                }
-
-                odometerElement.innerHTML = subscriberCount;
-
-                if (timeLabels.length >= 100) {
-                    timeLabels.shift();
-                    subscriberData.shift();
-                }
-
-                timeLabels.push(new Date().toLocaleTimeString());
-                subscriberData.push(subscriberCount);
-
-                updateGraph();
-            }
-        }
-
-        async function fetchViewsData() {
-            if (!currentUsername) return;
-            const subscriberRef = ref(db, "subscribers");
-            const snapshot = await get(subscriberRef);
-            const data = snapshot.val();
-
-            if (data && data[currentUsername]) {
-                const userViews = parseInt(data[currentUsername].userViews || 0);
-                document.getElementById("views-counter").innerHTML = userViews;
-            }
-        }
-
-        function updateGraph() {
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            chartInstance = new Chart(graphCtx, {
-                type: 'line',
-                data: {
-                    labels: timeLabels,
-                    datasets: [{
-                        label: 'Subscriber Count',
-                        data: subscriberData,
-                        borderColor: 'white',
-                        backgroundColor: 'rgba(0, 230, 118, 0.2)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 0
-                    }]
+        chartInstance = new Chart(graphCtx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'Subscriber Count',
+                    data: subscriberData,
+                    borderColor: 'white',
+                    backgroundColor: 'rgba(0, 230, 118, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: {
+                    duration: 0
                 },
-                options: {
-                    responsive: true,
-                    animation: {
-                        duration: 0
+                scales: {
+                    x: {
+                        grid: { display: false }
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                display: false
-                            }
-                        }
+                    y: {
+                        grid: { display: false },
+                        ticks: { display: false }
                     }
                 }
-            });
-        }
-
-        document.getElementById("search-btn").addEventListener("click", () => {
-            const username = document.getElementById("channel-name").value || document.getElementById("channel-dropdown").value;
-            if (username) {
-                currentUsername = username;
-                fetchSubscriberData();
-                fetchViewsData();
-                setInterval(fetchSubscriberData, 3000);
-                setInterval(fetchViewsData, 2000);
             }
         });
+    }
 
-        fetchChannels();
-    </script>
+    document.getElementById("search-btn").addEventListener("click", () => {
+        const username = document.getElementById("channel-name").value || document.getElementById("channel-dropdown").value;
+        if (username) {
+            currentUsername = username;
+            fetchSubscriberData();
+            fetchViewsData();
+            setInterval(fetchSubscriberData, 3000);
+            setInterval(fetchViewsData, 2000);
+        }
+    });
+
+    fetchChannels();
+</script>
     <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
 </body>
 </html>
