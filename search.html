@@ -102,36 +102,40 @@
     <script type="module">
     let currentUsername = "";
 
-    const subscriberGraph = document.getElementById("subscriber-graph");
-    const graphCtx = subscriberGraph.getContext("2d");
+const subscriberGraph = document.getElementById("subscriber-graph");
+const graphCtx = subscriberGraph.getContext("2d");
 
-    let subscriberData = [];
-    let timeLabels = [];
-    let chartInstance = null;
+let subscriberData = [];
+let timeLabels = [];
+let chartInstance = null;
 
-    async function fetchChannels() {
-        try {
-            const res = await fetch("https://api.stattube.xyz/");
-            const data = await res.json();
-            const channelDropdown = document.getElementById("channel-dropdown");
+async function fetchChannels() {
+    try {
+        const res = await fetch("https://api.stattube.xyz/");
+        const data = await res.json();
+        const channelDropdown = document.getElementById("channel-dropdown");
 
-            Object.keys(data).forEach(channel => {
-                const option = document.createElement("option");
-                option.value = channel;
-                option.textContent = channel;
-                channelDropdown.appendChild(option);
-            });
-        } catch (error) {
-            console.error("Error fetching channels:", error);
-        }
+        Object.keys(data).forEach(channel => {
+            const option = document.createElement("option");
+            option.value = channel;
+            option.textContent = channel;
+            channelDropdown.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error fetching channels:", error);
     }
+}
 
-    async function fetchSubscriberData() {
-        if (!currentUsername) return;
-        try {
-            const res = await fetch(`https://api.stattube.xyz/${currentUsername}`);
-            const userData = await res.json();
+async function fetchSubscriberData() {
+    if (!currentUsername) return;
+    try {
+        const res = await fetch(`https://api.stattube.xyz/`);
+        const data = await res.json();
 
+        // Get the data for the selected channel
+        const userData = data[currentUsername];
+
+        if (userData) {
             document.getElementById("profile-img").src = decodeURIComponent(userData.profilePicture);
             document.getElementById("username").textContent = currentUsername;
 
@@ -139,12 +143,14 @@
             const odometerElement = document.getElementById("subscriber-counter");
             const currentCount = parseInt(odometerElement.innerHTML);
 
+            // Color logic for odometer
             odometerElement.style.color = subscriberCount > currentCount ? 'green'
-                                      : subscriberCount < currentCount ? 'red'
-                                      : 'white';
+                                          : subscriberCount < currentCount ? 'red'
+                                          : 'white';
 
             odometerElement.innerHTML = subscriberCount;
 
+            // Update graph
             if (timeLabels.length >= 100) {
                 timeLabels.shift();
                 subscriberData.shift();
@@ -154,72 +160,80 @@
             subscriberData.push(subscriberCount);
 
             updateGraph();
-        } catch (error) {
-            console.error("Error fetching subscriber data:", error);
+        } else {
+            console.error("User data not found for the selected username.");
         }
+    } catch (error) {
+        console.error("Error fetching subscriber data:", error);
     }
+}
 
-    async function fetchViewsData() {
-        if (!currentUsername) return;
-        try {
-            const res = await fetch(`https://api.stattube.xyz/${currentUsername}`);
-            const userData = await res.json();
+async function fetchViewsData() {
+    if (!currentUsername) return;
+    try {
+        const res = await fetch(`https://api.stattube.xyz/`);
+        const data = await res.json();
+
+        // Get the views data for the selected channel
+        const userData = data[currentUsername];
+        if (userData) {
             const userViews = parseInt(userData.userViews || 0);
             document.getElementById("views-counter").innerHTML = userViews;
-        } catch (error) {
-            console.error("Error fetching views data:", error);
         }
+    } catch (error) {
+        console.error("Error fetching views data:", error);
+    }
+}
+
+function updateGraph() {
+    if (chartInstance) {
+        chartInstance.destroy();
     }
 
-    function updateGraph() {
-        if (chartInstance) {
-            chartInstance.destroy();
-        }
-
-        chartInstance = new Chart(graphCtx, {
-            type: 'line',
-            data: {
-                labels: timeLabels,
-                datasets: [{
-                    label: 'Subscriber Count',
-                    data: subscriberData,
-                    borderColor: 'white',
-                    backgroundColor: 'rgba(0, 230, 118, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    pointRadius: 0
-                }]
+    chartInstance = new Chart(graphCtx, {
+        type: 'line',
+        data: {
+            labels: timeLabels,
+            datasets: [{
+                label: 'Subscriber Count',
+                data: subscriberData,
+                borderColor: 'white',
+                backgroundColor: 'rgba(0, 230, 118, 0.2)',
+                borderWidth: 2,
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: {
+                duration: 0
             },
-            options: {
-                responsive: true,
-                animation: {
-                    duration: 0
+            scales: {
+                x: {
+                    grid: { display: false }
                 },
-                scales: {
-                    x: {
-                        grid: { display: false }
-                    },
-                    y: {
-                        grid: { display: false },
-                        ticks: { display: false }
-                    }
+                y: {
+                    grid: { display: false },
+                    ticks: { display: false }
                 }
             }
-        });
-    }
-
-    document.getElementById("search-btn").addEventListener("click", () => {
-        const username = document.getElementById("channel-name").value || document.getElementById("channel-dropdown").value;
-        if (username) {
-            currentUsername = username;
-            fetchSubscriberData();
-            fetchViewsData();
-            setInterval(fetchSubscriberData, 3000);
-            setInterval(fetchViewsData, 2000);
         }
     });
+}
 
-    fetchChannels();
+document.getElementById("search-btn").addEventListener("click", () => {
+    const username = document.getElementById("channel-name").value || document.getElementById("channel-dropdown").value;
+    if (username) {
+        currentUsername = username;
+        fetchSubscriberData();
+        fetchViewsData();
+        setInterval(fetchSubscriberData, 3000);
+        setInterval(fetchViewsData, 2000);
+    }
+});
+
+fetchChannels();
 </script>
     <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
 </body>
