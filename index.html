@@ -293,12 +293,12 @@
 
     <script type="module">
         // Example API for fetching subscriber data
-        const API_URL = "https://api.stattube.xyz/"; // Replace with your API endpoint
+        const API_URL = "https://api.stattube.xyz/v1/"; // Replace with your API endpoint
 
         // Function to fetch data from the API
         async function fetchSubscriberData() {
             try {
-                const response = await fetch(`${API_URL}`);
+                const response = await fetch(`${API_URL}subscribers`);
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -314,7 +314,7 @@
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
-                return [];
+                return {};
             }
         }
 
@@ -329,16 +329,16 @@
             subscribersTable.innerHTML = '';
 
             const subscribers = await fetchSubscriberData();
-            if (subscribers.length === 0) {
+            if (Object.keys(subscribers).length === 0) {
                 document.getElementById('warning').textContent = "No subscriber data available.";
                 return;
             }
 
-            const sortedData = subscribers
-                .map(subscriber => ({
-                    name: subscriber.name,
-                    count: subscriber.subscriberCount,
-                    profilePicture: subscriber.profilePicture || ''
+            const sortedData = Object.keys(subscribers)
+                .map(key => ({
+                    name: key.trim(),
+                    count: parseInt(subscribers[key].subscriberCount),
+                    profilePicture: decodeURIComponent(subscribers[key].profilePicture) || ''
                 }))
                 .sort((a, b) => b.count - a.count);
 
@@ -358,7 +358,7 @@
                 // Profile Picture
                 const pictureCell = newRow.insertCell(2);
                 const img = document.createElement("img");
-                img.src = decodeURIComponent(subscriber.profilePicture);
+                img.src = subscriber.profilePicture;
                 img.style.width = "50px";
                 img.style.height = "50px";
                 img.style.borderRadius = "50%";
