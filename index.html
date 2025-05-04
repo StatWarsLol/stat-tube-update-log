@@ -34,67 +34,47 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-/* Dark Mode Styles */
-body.dark-mode {
-    background: #333;
-    color: #ccc;
-}
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: #333;
+            color: #ccc;
+        }
 
-body.dark-mode h1 {
-    color: #fff;
-}
+        body.dark-mode h1 {
+            color: #fff;
+        }
 
-body.dark-mode #subscribersTable {
-    background: #222;
-}
+        body.dark-mode #subscribersTable {
+            background: #222;
+        }
 
-body.dark-mode #subscribersTable th {
-    background-color: #005bb5;
-}
+        body.dark-mode #subscribersTable th {
+            background-color: #005bb5;
+        }
 
-body.dark-mode #subscribersTable td {
-    color: #bbb;
-}
+        body.dark-mode #subscribersTable td {
+            color: #bbb;
+        }
 
-body.dark-mode #compare-button,
-body.dark-mode #connect-button {
-    background-color: #005bb5;
-}
+        body.dark-mode #compare-button,
+        body.dark-mode #connect-button {
+            background-color: #005bb5;
+        }
 
-body.dark-mode #compare-button:hover,
-body.dark-mode #connect-button:hover {
-    background-color: #003d8f;
-}
+        body.dark-mode #compare-button:hover,
+        body.dark-mode #connect-button:hover {
+            background-color: #003d8f;
+        }
 
-body.dark-mode .modal-content {
-    background: #444;
-    color: #fff;
-}
+        body.dark-mode .modal-content {
+            background: #444;
+            color: #fff;
+        }
 
-body.dark-mode #gap-display,
-body.dark-mode .compare-subscriber-count {
-    color: #fff;
-}
-
-/* Dark Mode Styles */
-body.dark-mode {
-    background: #111;
-    color: #111;
-}
-
-body.dark-mode h1 {
-    color: #fff;
-}
-
-body.dark-mode a {
-    color: white;  /* Change link color to white in dark mode */
-}
-
-body.dark-mode a:hover {
-    color: #f0f0f0;  /* Lighter color on hover */
-}
-
-/* Other dark mode styles here (same as before) */
+        body.dark-mode #gap-display,
+        body.dark-mode .compare-subscriber-count {
+            color: #fff;
+        }
 
         /* Table Styles */
         #subscribersTable {
@@ -293,16 +273,13 @@ body.dark-mode a:hover {
     <h1>Subscribers List</h1>
     <table id="subscribersTable">
         <thead>
-            <thead>
-    <tr>
-        <th>Ranking</th>
-        <th>Select</th>
-        <th>Profile Picture</th>
-        <th>Channel Name</th>
-        <th>Subscriber Count</th> <!-- New header for profile picture -->
-        
-    </tr>
-</thead>
+            <tr>
+                <th>Ranking</th>
+                <th>Select</th>
+                <th>Profile Picture</th>
+                <th>Channel Name</th>
+                <th>Subscriber Count</th> 
+            </tr>
         </thead>
         <tbody>
             <!-- Subscriber data will be inserted here -->
@@ -312,316 +289,109 @@ body.dark-mode a:hover {
     <button id="compare-button">Compare Selected Channels</button>
     <button id="connect-button">Boost CT Channels [BETA]</button>
 
-<button id="dark-mode-toggle">dark mode</button>
+    <button id="dark-mode-toggle">dark mode</button>
 
     <!-- Comparison Modal -->
     <div id="compare-modal">
         <div class="modal-content">
             <div class="compare-container">
-                <div class="compare-item">
-                    <div id="channel1-name">Channel 1</div>
-                    <div id="channel1-subscriber-count" class="compare-subscriber-count odometer">0</div>
+                <div class="compare-channel">
+                    <img id="channel1-img" src="" alt="Channel 1" width="50" />
+                    <div id="channel1-name"></div>
+                    <div id="channel1-subscriber"></div>
                 </div>
-                <div class="compare-item">
-                    <div id="channel2-name">Channel 2</div>
-                    <div id="channel2-subscriber-count" class="compare-subscriber-count odometer">0</div>
+                <div class="gap-display" id="gap-display">Gap between Channels</div>
+                <div class="compare-channel">
+                    <img id="channel2-img" src="" alt="Channel 2" width="50" />
+                    <div id="channel2-name"></div>
+                    <div id="channel2-subscriber"></div>
                 </div>
             </div>
-            <div id="gap-display" class="odometer">0</div>
-            <div id="close-compare-btn">Close</div>
+            <div class="compare-subscriber-count" id="compare-subscriber-count"></div>
+            <button id="close-compare-btn">Close</button>
         </div>
     </div>
 
-    <!-- Live Subscriber Modal -->
+    <!-- Live Subscriber Count Modal -->
     <div id="live-sub-modal">
         <div class="modal-content">
-            <div id="live-sub-name">Channel Name</div>
-            <div id="live-sub-count" class="live-subscriber-count odometer">0</div>
-            <canvas id="sub-graph" width="300" height="150"></canvas>
-            <div id="close-live-sub-btn">Close</div>
+            <div class="live-subscriber-count" id="live-subscriber-count">
+                Live Subscriber Count: <span id="live-subscriber-number">Loading...</span>
+            </div>
+            <button id="close-live-sub-btn">Close</button>
         </div>
     </div>
 
-    <!-- Custom Alert Modal -->
-    <div id="custom-alert" class="custom-modal">
-        <div class="modal-content">
-            <p id="alert-message"></p>
-            <button id="alert-ok">OK</button>
-        </div>
-    </div>
-
-    <!-- Custom Prompt Modal -->
-    <div id="custom-prompt" class="custom-modal">
-        <div class="modal-content">
-            <p id="prompt-message"></p>
-            <input type="text" id="prompt-input" />
-            <button id="prompt-ok">OK</button>
-            <button id="prompt-cancel">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Custom Confirm Modal -->
-    <div id="custom-confirm" class="custom-modal">
-        <div class="modal-content">
-            <p id="confirm-message"></p>
-            <button id="confirm-ok">OK</button>
-            <button id="confirm-cancel">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Upload Modal -->
-    <div id="uploadModal">
-        <div class="modal-content">
-            <h2>Boost Channels on CT</h2>
-            <button class="modal-button" id="upload-video">!help</button>
-            <button class="modal-button" id="close-modal">Close</button>
-            <h3>How to boost channels: First grab the channel ID of the user via https://ytlarge.com/youtube/channel-id-finder/ or any other source for channel id grabbing.</h3>
-            <h3>Second, press !help and input the channel id of the user you want to boost (it can be yourself), and then click enter. Subscribers will go to the user to help them. Cooldown of 10 minutes.</h3>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
     <script type="module">
-        // Firebase configuration
-        const firebaseConfig = {
-  apiKey: "AIzaSyBKRIZDQ94sxPZ3da2D9Ucfoxv4q2ZZF5c",
-  authDomain: "are-you-kidding-me.firebaseapp.com",
-  databaseURL: "https://are-you-kidding-me-default-rtdb.firebaseio.com",
-  projectId: "are-you-kidding-me",
-  storageBucket: "are-you-kidding-me.firebasestorage.app",
-  messagingSenderId: "667397289088",
-  appId: "1:667397289088:web:183293a42669f3b28d2265",
-  measurementId: "G-04QEYGW21K"
-};
-        
-     
-document.getElementById('dark-mode-toggle').addEventListener('click', function () {
-    document.body.classList.toggle('dark-mode');
-});   
+        // Example API for fetching subscriber data
+        const API_URL = "https://api.stattube.xyz/"; // Replace with your API endpoint
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const subscribersRef = ref(database, 'subscribers');
-        const connectionsRef = ref(database, 'connections');
-
-        const compareButton = document.getElementById("compare-button");
-        const connectButton = document.getElementById("connect-button");
-        const compareModal = document.getElementById("compare-modal");
-        const liveSubModal = document.getElementById("live-sub-modal");
-        const uploadModal = document.getElementById("uploadModal");
-        const closeCompareBtn = document.getElementById("close-compare-btn");
-        const closeLiveSubBtn = document.getElementById("close-live-sub-btn");
-        const closeModal = document.getElementById("close-modal");
-
-        // Load and display subscriber data
-onValue(subscribersRef, (snapshot) => {
-    const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
-    subscribersTable.innerHTML = '';
-    if (snapshot.exists()) {
-        const subscribersData = snapshot.val();
-        const sortedData = Object.entries(subscribersData)
-            .map(([name, data]) => ({
-                name,
-                count: data.subscriberCount || "No Count",
-                profilePicture: data.profilePicture || ""
-            }))
-            .sort((a, b) => b.count - a.count);
-
-        sortedData.forEach((subscriber, index) => {
-            const newRow = subscribersTable.insertRow();
-
-            // Ranking (add "#" before the ranking number)
-            const rankingCell = newRow.insertCell(0);
-            rankingCell.className = "ranking";
-            rankingCell.innerText = `#${index + 1}`; // Add "#" before the ranking number
-
-            // Checkbox for selection
-            const checkboxCell = newRow.insertCell(1);
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkboxCell.appendChild(checkbox);
-
-            // Profile Picture
-            const pictureCell = newRow.insertCell(2); // Move profile picture to the first cell
-            const decodedUrl = decodeURIComponent(subscriber.profilePicture); // Decode the URL
-            if (decodedUrl) {
-                const img = document.createElement("img");
-                img.src = decodedUrl;
-                img.alt = ``;
-                img.style.width = "50px"; // Set a width for the image
-                img.style.height = "50px"; // Set a height for the image
-                img.style.borderRadius = "50%"; // Make it circular
-                pictureCell.appendChild(img);
-            } else {
-                pictureCell.innerText = "No Image"; // Fallback if no image is available
+        // Function to fetch data from the API
+        async function fetchSubscriberData() {
+            try {
+                const response = await fetch(`${API_URL}subscribers`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                return [];
             }
-
-            // Channel Name
-            const nameCell = newRow.insertCell(3); // Move channel name to the second cell
-            nameCell.className = "channel-name";
-            nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(subscriber.name)}" target="_blank">${subscriber.name}</a>`;
-            nameCell.addEventListener("click", () => displayLiveSubCount(subscriber.name));
-
-            if (parseInt(subscriber.count) >= 100000) {
-                nameCell.innerHTML += ' <img src="sigmasigma.png" alt="Verified" class="verified-badge">';
-            }
-
-            // Subscriber Count
-            const countCell = newRow.insertCell(4); // Move subscriber count to the third cell
-            countCell.className = "subscriber-count odometer";
-            countCell.innerText = subscriber.count;
-        });
-    } else {
-        const newRow = subscribersTable.insertRow();
-        newRow.insertCell(0).innerText = "No subscribers found.";
-        newRow.insertCell(1).innerText = "";
-        newRow.insertCell(2).innerText = "";
-        newRow.insertCell(3).innerText = ""; // Add an empty cell for the profile picture
-        newRow.insertCell(4).innerText = ""; // Add an empty cell for the subscriber count
-    }
-});
-
-        document.getElementById("upload-video").addEventListener("click", () => {
-            const channelIdInput = prompt("Please enter your channel ID Again for the video uploads:");
-            if (channelIdInput) {
-                const uploadedVideoRef = ref(database, `connections/${channelIdInput}/uploadedVideo`);
-
-                // Set uploadedVideo class to true
-                set(uploadedVideoRef, true).then(() => {
-                    alert("!help has a cooldown of 10 seconds, and will only register every 10 seconds. 90-100 subs");
-
-                    // Remove uploadedVideo after 10 seconds
-                    setTimeout(() => {
-                        set(uploadedVideoRef, null); // Remove the uploadedVideo class
-                    }, 10000);
-                }).catch((error) => {
-                    console.error("Error uploading video:", error);
-                });
-            }
-        });
-
-        // Show live subscriber count for clicked channel
-        let liveSubData = [];
-        let subChart;
-        let liveSubInterval;
-
-        function displayLiveSubCount(channelName) {
-            liveSubModal.style.display = "flex";
-            document.getElementById("live-sub-name").innerText = channelName;
-
-            const liveSubCountRef = ref(database, `subscribers/${channelName}/subscriberCount`);
-            let lastCount = null;
-
-            onValue(liveSubCountRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const newCount = snapshot.val();
-                    document.getElementById("live-sub-count").innerText = newCount;
-
-                    // Only add to liveSubData if there is a change in the subscriber count
-                    lastCount = newCount;
-                }
-            });
-
-            // Set up chart if it hasn't been initialized yet
-            if (!subChart) {
-                const ctx = document.getElementById("sub-graph").getContext("2d");
-                subChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: [],
-                        datasets: [{
-                            label: 'Subscriber Count Over Time',
-                            data: [],
-                            borderColor: '#0073e6',
-                            backgroundColor: 'rgba(0, 115, 230, 0.2)',
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            x: {
-                                title: { display: true, text: 'Time' }
-                            },
-                            y: {
-                                title: { display: true, text: 'Subscribers' }
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Clear any existing interval and start a new one for the live updates every 2 seconds
-            clearInterval(liveSubInterval);
-            liveSubInterval = setInterval(() => {
-                if (lastCount !== null) {
-                    liveSubData.push(lastCount);
-                    if (liveSubData.length > 20) liveSubData.shift(); // Limit to the latest 20 points
-                    
-                    // Update chart data and refresh
-                    subChart.data.labels = Array.from({ length: liveSubData.length }, (_, i) => i + 1);
-                    subChart.data.datasets[0].data = liveSubData;
-                    subChart.update();
-                }
-            }, 2000);
         }
 
-        // Close button for live subscriber modal
-        closeLiveSubBtn.onclick = () => {
-            liveSubModal.style.display = " none";
-            clearInterval(liveSubInterval); // Stop updates when the modal is closed
-            liveSubData = [];               // Reset data for a fresh start
-            if (subChart) subChart.destroy();
-            subChart = null;
-        };
-
-        // Close button for upload modal
-        connectButton.onclick = () => {
-            uploadModal.style.display = "block";
-        };
-
-        // Close button for upload modal
-        closeModal.onclick = () => {
-            uploadModal.style.display = "none";
-        };
-
-        // Event listeners for upload buttons
-        document.getElementById("upload-video").addEventListener("click", () => {
-            // Handle video upload logic here
-            alert("Subscribers sent to help. !help");
-            // Optionally send the command to the server or perform an action
+        // Handle dark mode toggle
+        document.getElementById('dark-mode-toggle').addEventListener('click', function () {
+            document.body.classList.toggle('dark-mode');
         });
 
-        // Compare button click to show comparison modal
-        compareButton.addEventListener("click", () => {
-            const checkedRows = Array.from(document.querySelectorAll('#subscribersTable tbody input[type="checkbox"]:checked')).map(checkbox => checkbox.closest('tr'));
-            if (checkedRows.length === 2) {
-                const [channel1Row, channel2Row] = checkedRows;
+        // Function to load subscribers data from API
+        async function loadSubscribersData() {
+            const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
+            subscribersTable.innerHTML = '';
 
-                const channel1Name = channel1Row.cells[1].textContent;
-                const channel1Count = parseInt(channel1Row.cells[2].textContent.replace(/,/g, ''), 10);
+            const subscribers = await fetchSubscriberData();
+            const sortedData = subscribers
+                .map(subscriber => ({
+                    name: subscriber.name,
+                    count: subscriber.subscriberCount,
+                    profilePicture: subscriber.profilePicture || ''
+                }))
+                .sort((a, b) => b.count - a.count);
 
-                const channel2Name = channel2Row.cells[1].textContent;
-                const channel2Count = parseInt(channel2Row.cells[2].textContent.replace(/,/g, ''), 10);
+            sortedData.forEach((subscriber, index) => {
+                const newRow = subscribersTable.insertRow();
 
-                document.getElementById("channel1-name").innerText = channel1Name;
-                document.getElementById("channel1-subscriber-count").innerText = channel1Count;
-                document.getElementById("channel2-name").innerText = channel2Name;
-                document.getElementById("channel2-subscriber-count").innerText = channel2Count;
+                // Ranking
+                const rankingCell = newRow.insertCell(0);
+                rankingCell.innerText = `#${index + 1}`;
 
-                // Calculate the gap with odometer animation
-                const gap = Math.abs(channel1Count - channel2Count);
-                document.getElementById("gap-display").innerText = gap;
+                // Checkbox for selection
+                const checkboxCell = newRow.insertCell(1);
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkboxCell.appendChild(checkbox);
 
-                compareModal.style.display = "flex";
-            }
-        });
+                // Profile Picture
+                const pictureCell = newRow.insertCell(2);
+                const img = document.createElement("img");
+                img.src = decodeURIComponent(subscriber.profilePicture);
+                img.style.width = "50px";
+                img.style.height = "50px";
+                img.style.borderRadius = "50%";
+                pictureCell.appendChild(img);
 
-        closeCompareBtn.onclick = () => {
-            compareModal.style.display = "none";
-        };
+                // Channel Name
+                const nameCell = newRow.insertCell(3);
+                nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(subscriber.name)}">${subscriber.name}</a>`;
+
+                // Subscriber Count
+                const countCell = newRow.insertCell(4);
+                countCell.className = "odometer";
+                countCell.innerText = subscriber.count;
+            });
+        }
+
+        // Load subscribers data on page load
+        loadSubscribersData();
     </script>
 </body>
 </html>
