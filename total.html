@@ -32,68 +32,45 @@
   </style>
 </head>
 <body>
-  <h1>total subs</h1>
+  <h1>Total Subscribers</h1>
   <div id="subscriber-count" class="odometer">0</div>
 
-  <h2>gains in the last update</h2>
+  <h2>Gains in the Last Update</h2>
   <div id="gains-counter" class="odometer">0</div>
 
   <script type="module">
-    // Import and initialize Firebase SDK
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
-
-    // Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBKRIZDQ94sxPZ3da2D9Ucfoxv4q2ZZF5c",
-  authDomain: "are-you-kidding-me.firebaseapp.com",
-  databaseURL: "https://are-you-kidding-me-default-rtdb.firebaseio.com",
-  projectId: "are-you-kidding-me",
-  storageBucket: "are-you-kidding-me.firebasestorage.app",
-  messagingSenderId: "667397289088",
-  appId: "1:667397289088:web:183293a42669f3b28d2265",
-  measurementId: "G-04QEYGW21K"
-};
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-
     let totalSubscribers = 0;
     let previousSubscribers = 0;
     let totalGains = 0;
     let gainStartTime = Date.now();
 
     async function updateTotalSubscribers() {
-      const dbRef = ref(database);
       try {
-        const snapshot = await get(child(dbRef, 'subscribers')); // Adjusted to fetch from the 'subscribers' node
-        if (snapshot.exists()) {
-          const data = snapshot.val();
+        // Fetch all channels data
+        const res = await fetch("https://api.stattube.xyz/");
+        const data = await res.json();
 
-          // Calculate the total subscriber count from `subscriberCount`
-          const newTotal = Object.values(data || {}).reduce((acc, channel) => {
-            const subscriberCount = parseInt(channel.subscriberCount, 10) || 0;
-            return acc + subscriberCount;
-          }, 0);
+        // Calculate the total subscriber count from the channel data
+        const newTotal = Object.values(data || {}).reduce((acc, channel) => {
+          const subscriberCount = parseInt(channel.subscriberCount, 10) || 0;
+          return acc + subscriberCount;
+        }, 0);
 
-          // Only update if the total has changed to minimize unnecessary updates
-          if (newTotal !== totalSubscribers) {
-            const currentTime = Date.now();
-            const timeElapsed = currentTime - gainStartTime;
+        // Only update if the total has changed to minimize unnecessary updates
+        if (newTotal !== totalSubscribers) {
+          const currentTime = Date.now();
+          const timeElapsed = currentTime - gainStartTime;
 
-            // Calculate gain for the last minute
-            if (timeElapsed >= 10000) {  // If 1 minute has passed
-              totalGains = newTotal - previousSubscribers;
-              document.getElementById('gains-counter').innerHTML = totalGains;
-              gainStartTime = currentTime;
-              previousSubscribers = newTotal;
-            }
-
-            totalSubscribers = newTotal;
-            document.getElementById('subscriber-count').innerHTML = totalSubscribers;
+          // Calculate gain for the last update period
+          if (timeElapsed >= 10000) {  // If 10 seconds have passed
+            totalGains = newTotal - previousSubscribers;
+            document.getElementById('gains-counter').innerHTML = totalGains;
+            gainStartTime = currentTime;
+            previousSubscribers = newTotal;
           }
-        } else {
-          console.log("No data available in 'subscribers'");
+
+          totalSubscribers = newTotal;
+          document.getElementById('subscriber-count').innerHTML = totalSubscribers;
         }
       } catch (error) {
         console.error("Error fetching subscriber data: ", error);
