@@ -293,11 +293,11 @@
 
     <script type="module">
         // Example API for fetching subscriber data
-        const API_URL = "https://api.stattube.xyz/";
+        const API_URL = "https://api.stattube.xyz/"; // Replace with your API endpoint
 
         async function fetchSubscriberData() {
     try {
-        const response = await fetch('https://api.stattube.xyz/');
+        const response = await fetch('https://api.stattube.xyz/subscribers');
         const data = await response.json();
         return data;
     } catch (error) {
@@ -315,60 +315,59 @@ async function loadSubscribersData() {
         return;
     }
 
+    // Create an array from the object keys to sort by subscriber count
+    const sortedSubscribers = Object.keys(subscribers)
+        .map(key => {
+            return {
+                name: key.trim(),
+                subscriberCount: parseInt(subscribers[key].subscriberCount),
+                profilePicture: decodeURIComponent(subscribers[key].profilePicture) || ''
+            };
+        })
+        .sort((a, b) => b.subscriberCount - a.subscriberCount);  // Sort by subscriberCount in descending order
+
     // We need to store existing subscriber names and find matching rows to update
     const rows = subscribersTable.getElementsByTagName('tr');
 
-    // Iterate over each subscriber data
-    Object.keys(subscribers).forEach((key, index) => {
-        const subscriberData = subscribers[key];
-        const name = key.trim();
-        const count = parseInt(subscriberData.subscriberCount);
-        const profilePicture = decodeURIComponent(subscriberData.profilePicture) || '';
+    // Empty the table before updating it with sorted data
+    subscribersTable.innerHTML = '';
 
-        // Check if this user already exists in the table
-        let row = Array.from(rows).find(row => {
-            const channelName = row.cells[3].textContent.trim();
-            return channelName === name;
-        });
+    // Iterate over the sorted subscribers list
+    sortedSubscribers.forEach((subscriberData, index) => {
+        const name = subscriberData.name;
+        const count = subscriberData.subscriberCount;
+        const profilePicture = subscriberData.profilePicture;
 
-        if (row) {
-            // If the user exists, update the subscriber count (5th cell)
-            const countCell = row.cells[4];
-            if (countCell.innerText !== count.toString()) {
-                countCell.innerText = count; // Update the count
-            }
-        } else {
-            // If the user doesn't exist, add a new row (This can happen if new users come in)
-            const newRow = subscribersTable.insertRow();
+        // Create a new row for each subscriber
+        const newRow = subscribersTable.insertRow();
 
-            // Ranking
-            const rankingCell = newRow.insertCell(0);
-            rankingCell.innerText = `#${index + 1}`;
+        // Ranking
+        const rankingCell = newRow.insertCell(0);
+        rankingCell.innerText = `#${index + 1}`;
 
-            // Checkbox for selection
-            const checkboxCell = newRow.insertCell(1);
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkboxCell.appendChild(checkbox);
+        // Checkbox for selection
+        const checkboxCell = newRow.insertCell(1);
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkboxCell.appendChild(checkbox);
 
-            // Profile Picture
-            const pictureCell = newRow.insertCell(2);
-            const img = document.createElement("img");
-            img.src = profilePicture;
-            img.style.width = "50px";
-            img.style.height = "50px";
-            img.style.borderRadius = "50%";
-            pictureCell.appendChild(img);
+        // Profile Picture
+        const pictureCell = newRow.insertCell(2);
+        const img = document.createElement("img");
+        img.src = profilePicture;
+        img.style.width = "50px";
+        img.style.height = "50px";
+        img.style.borderRadius = "50%";
+        pictureCell.appendChild(img);
 
-            // Channel Name
-            const nameCell = newRow.insertCell(3);
-            nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(name)}">${name}</a>`;
+        // Channel Name
+        const nameCell = newRow.insertCell(3);
+        nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(name)}">${name}</a>`;
 
-            // Subscriber Count
-            const countCell = newRow.insertCell(4);
-            countCell.className = "odometer";
-            countCell.innerText = count;
-        }
+        // Subscriber Count
+        const countCell = newRow.insertCell(4);
+        countCell.className = "odometer";
+        countCell.innerText = count;
     });
 }
 
