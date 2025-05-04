@@ -293,7 +293,7 @@
 
     <script type="module">
         // Example API for fetching subscriber data
-        const API_URL = "https://api.stattube.xyz/"; // Replace with your API endpoint
+        const API_URL = "https://api.stattube.xyz/";
 
         async function fetchSubscriberData() {
     try {
@@ -308,54 +308,67 @@
 
 async function loadSubscribersData() {
     const subscribersTable = document.getElementById('subscribersTable').getElementsByTagName('tbody')[0];
-    subscribersTable.innerHTML = '';
-
     const subscribers = await fetchSubscriberData();
+
     if (Object.keys(subscribers).length === 0) {
         document.getElementById('warning').textContent = "No subscriber data available.";
         return;
     }
 
-    // Now, we'll map over the object keys instead of using .map() directly on the object.
-    const sortedData = Object.keys(subscribers)
-        .map(key => ({
-            name: key.trim(),
-            count: parseInt(subscribers[key].subscriberCount),
-            profilePicture: decodeURIComponent(subscribers[key].profilePicture) || ''
-        }))
-        .sort((a, b) => b.count - a.count);
+    // We need to store existing subscriber names and find matching rows to update
+    const rows = subscribersTable.getElementsByTagName('tr');
 
-    // Create table rows for each subscriber
-    sortedData.forEach((subscriber, index) => {
-        const newRow = subscribersTable.insertRow();
+    // Iterate over each subscriber data
+    Object.keys(subscribers).forEach((key, index) => {
+        const subscriberData = subscribers[key];
+        const name = key.trim();
+        const count = parseInt(subscriberData.subscriberCount);
+        const profilePicture = decodeURIComponent(subscriberData.profilePicture) || '';
 
-        // Ranking
-        const rankingCell = newRow.insertCell(0);
-        rankingCell.innerText = `#${index + 1}`;
+        // Check if this user already exists in the table
+        let row = Array.from(rows).find(row => {
+            const channelName = row.cells[3].textContent.trim();
+            return channelName === name;
+        });
 
-        // Checkbox for selection
-        const checkboxCell = newRow.insertCell(1);
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkboxCell.appendChild(checkbox);
+        if (row) {
+            // If the user exists, update the subscriber count (5th cell)
+            const countCell = row.cells[4];
+            if (countCell.innerText !== count.toString()) {
+                countCell.innerText = count; // Update the count
+            }
+        } else {
+            // If the user doesn't exist, add a new row (This can happen if new users come in)
+            const newRow = subscribersTable.insertRow();
 
-        // Profile Picture
-        const pictureCell = newRow.insertCell(2);
-        const img = document.createElement("img");
-        img.src = subscriber.profilePicture;
-        img.style.width = "50px";
-        img.style.height = "50px";
-        img.style.borderRadius = "50%";
-        pictureCell.appendChild(img);
+            // Ranking
+            const rankingCell = newRow.insertCell(0);
+            rankingCell.innerText = `#${index + 1}`;
 
-        // Channel Name
-        const nameCell = newRow.insertCell(3);
-        nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(subscriber.name)}">${subscriber.name}</a>`;
+            // Checkbox for selection
+            const checkboxCell = newRow.insertCell(1);
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkboxCell.appendChild(checkbox);
 
-        // Subscriber Count
-        const countCell = newRow.insertCell(4);
-        countCell.className = "odometer";
-        countCell.innerText = subscriber.count;
+            // Profile Picture
+            const pictureCell = newRow.insertCell(2);
+            const img = document.createElement("img");
+            img.src = profilePicture;
+            img.style.width = "50px";
+            img.style.height = "50px";
+            img.style.borderRadius = "50%";
+            pictureCell.appendChild(img);
+
+            // Channel Name
+            const nameCell = newRow.insertCell(3);
+            nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(name)}">${name}</a>`;
+
+            // Subscriber Count
+            const countCell = newRow.insertCell(4);
+            countCell.className = "odometer";
+            countCell.innerText = count;
+        }
     });
 }
 
