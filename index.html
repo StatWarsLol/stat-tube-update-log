@@ -291,37 +291,6 @@
 
     <button id="dark-mode-toggle">dark mode</button>
 
-    <!-- Comparison Modal -->
-    <div id="compare-modal">
-        <div class="modal-content">
-            <div class="compare-container">
-                <div class="compare-channel">
-                    <img id="channel1-img" src="" alt="Channel 1" width="50" />
-                    <div id="channel1-name"></div>
-                    <div id="channel1-subscriber"></div>
-                </div>
-                <div class="gap-display" id="gap-display">Gap between Channels</div>
-                <div class="compare-channel">
-                    <img id="channel2-img" src="" alt="Channel 2" width="50" />
-                    <div id="channel2-name"></div>
-                    <div id="channel2-subscriber"></div>
-                </div>
-            </div>
-            <div class="compare-subscriber-count" id="compare-subscriber-count"></div>
-            <button id="close-compare-btn">Close</button>
-        </div>
-    </div>
-
-    <!-- Live Subscriber Count Modal -->
-    <div id="live-sub-modal">
-        <div class="modal-content">
-            <div class="live-subscriber-count" id="live-subscriber-count">
-                Live Subscriber Count: <span id="live-subscriber-number">Loading...</span>
-            </div>
-            <button id="close-live-sub-btn">Close</button>
-        </div>
-    </div>
-
     <script type="module">
         // Example API for fetching subscriber data
         const API_URL = "https://api.stattube.xyz/"; // Replace with your API endpoint
@@ -329,9 +298,20 @@
         // Function to fetch data from the API
         async function fetchSubscriberData() {
             try {
-                const response = await fetch(`${API_URL}subscribers`);
-                const data = await response.json();
-                return data;
+                const response = await fetch(`${API_URL}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Check if the response is JSON
+                const contentType = response.headers.get("Content-Type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await response.json();
+                    return data;
+                } else {
+                    throw new Error("Expected JSON, but got a different format.");
+                }
             } catch (error) {
                 console.error("Error fetching data:", error);
                 return [];
@@ -349,6 +329,11 @@
             subscribersTable.innerHTML = '';
 
             const subscribers = await fetchSubscriberData();
+            if (subscribers.length === 0) {
+                document.getElementById('warning').textContent = "No subscriber data available.";
+                return;
+            }
+
             const sortedData = subscribers
                 .map(subscriber => ({
                     name: subscriber.name,
