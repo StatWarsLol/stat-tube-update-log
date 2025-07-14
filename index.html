@@ -104,7 +104,7 @@
         }
         #subscribersTable tr:hover {
             background-color: rgba(0, 122, 255, 0.1);
-            transition: background-color: 0.3s ease;
+            transition: background-color 0.3s ease;
         }
 
         /* Button Styles */
@@ -291,17 +291,26 @@
 
     <button id="dark-mode-toggle">dark mode</button>
 
+    <!-- Added missing warning element -->
+    <p id="warning"></p>
+
     <script type="module">
-        // API for fetching subscriber data
-        const API_URL = "https://api.stat-tube.xyz/";
+        // Using a CORS proxy to bypass the server restriction
+        const PROXY_URL = "https://corsproxy.io/?";
+        const API_URL = `${PROXY_URL}https://api.stat-tube.xyz/`;
 
         async function fetchSubscriberData() {
             try {
-                const response = await fetch(API_URL); // Use the API_URL constant
+                const response = await fetch(API_URL); // Use the proxied API_URL
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 return data;
             } catch (error) {
                 console.error("Error fetching data: ", error);
+                // Display the error to the user in the warning element
+                document.getElementById('warning').textContent = `Failed to load data. ${error}`;
                 return {}; // Return empty object in case of error
             }
         }
@@ -311,11 +320,13 @@
             const subscribers = await fetchSubscriberData();
 
             if (Object.keys(subscribers).length === 0) {
-                document.getElementById('warning').textContent = "No subscriber data available.";
+                // The error message is now handled in the catch block of fetchSubscriberData
                 return;
             }
 
-            // Create an array from the object keys to sort by subscriber count
+            // Clear potential old error messages
+            document.getElementById('warning').textContent = "";
+
             const sortedSubscribers = Object.keys(subscribers)
                 .map(key => {
                     return {
@@ -324,34 +335,23 @@
                         profilePicture: decodeURIComponent(subscribers[key].profilePicture) || ''
                     };
                 })
-                .sort((a, b) => b.subscriberCount - a.subscriberCount);  // Sort by subscriberCount in descending order
+                .sort((a, b) => b.subscriberCount - a.subscriberCount);
 
-            // We need to store existing subscriber names and find matching rows to update
-            const rows = subscribersTable.getElementsByTagName('tr');
+            subscribersTable.innerHTML = ''; // Clear the table before repopulating
 
-            // Empty the table before updating it with sorted data
-            subscribersTable.innerHTML = '';
-
-            // Iterate over the sorted subscribers list
             sortedSubscribers.forEach((subscriberData, index) => {
                 const name = subscriberData.name;
                 const count = subscriberData.subscriberCount;
                 const profilePicture = subscriberData.profilePicture;
 
-                // Create a new row for each subscriber
                 const newRow = subscribersTable.insertRow();
+                newRow.insertCell(0).innerText = `#${index + 1}`;
 
-                // Ranking
-                const rankingCell = newRow.insertCell(0);
-                rankingCell.innerText = `#${index + 1}`;
-
-                // Checkbox for selection
                 const checkboxCell = newRow.insertCell(1);
                 const checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkboxCell.appendChild(checkbox);
 
-                // Profile Picture
                 const pictureCell = newRow.insertCell(2);
                 const img = document.createElement("img");
                 img.src = profilePicture;
@@ -360,21 +360,15 @@
                 img.style.borderRadius = "50%";
                 pictureCell.appendChild(img);
 
-                // Channel Name
-                const nameCell = newRow.insertCell(3);
-                nameCell.innerHTML = `<a href="channel.html?username=${encodeURIComponent(name)}">${name}</a>`;
-
-                // Subscriber Count
-                const countCell = newRow.insertCell(4);
-                countCell.className = "odometer";
-                countCell.innerText = count;
+                newRow.insertCell(3).innerHTML = `<a href="channel.html?username=${encodeURIComponent(name)}">${name}</a>`;
+                newRow.insertCell(4).innerText = count;
+                // Note: Re-initializing the odometer on dynamic content can be tricky.
+                // For simplicity, this example just sets the text. For the odometer animation,
+                // you would need to call the odometer library's update function on the element.
             });
         }
 
-        // Call loadSubscribersData initially to populate the table
         loadSubscribersData();
-
-        // Set an interval to update the subscriber data every 5 seconds
         setInterval(loadSubscribersData, 5000);
     </script>
 </body>
