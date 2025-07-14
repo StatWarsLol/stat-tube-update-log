@@ -235,8 +235,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/odometer/odometer.js"></script>
     <script type="module">
-        // --- CONFIG ---
-        const API_URL = "https://api.stat-tube.xyz/";
+        // --- CONFIG (FIX APPLIED HERE) ---
+        const PROXY_URL = "https://corsproxy.io/?";
+        const API_URL = `${PROXY_URL}https://api.stat-tube.xyz/`;
         const SUBSCRIBER_UPDATE_INTERVAL = 3000; // ms
         const MAX_GRAPH_POINTS = 50;
 
@@ -314,13 +315,13 @@
         async function fetchChannelData() {
             if (!currentUsername) return;
             try {
+                // We use the same API_URL variable, which now includes the proxy
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 const userData = data[currentUsername];
 
                 if (!userData) {
                     console.error("User data not found for:", currentUsername);
-                    // Optionally, stop fetching if the user is not found
                     clearInterval(dataFetchIntervalId);
                     return;
                 }
@@ -330,13 +331,11 @@
                     usernameDisplay.textContent = currentUsername;
                 }
 
-                // Update Subscribers
                 const subscriberCount = parseInt(userData.subscriberCount || 0);
                 const currentSubCount = parseInt(subOdometerEl.innerHTML.replace(/,/g, ''));
                 subOdometerEl.style.color = subscriberCount > currentSubCount ? 'lightgreen' : subscriberCount < currentSubCount ? 'salmon' : 'var(--text-primary)';
                 subOdometerEl.innerHTML = subscriberCount;
 
-                // Update Graph Data
                 if (subscriberData.length === 0 || subscriberData[subscriberData.length - 1] !== subscriberCount) {
                     if (timeLabels.length >= MAX_GRAPH_POINTS) {
                         timeLabels.shift();
@@ -347,13 +346,11 @@
                     updateGraph();
                 }
                 
-                // Update Views
                 const userViews = parseInt(userData.userViews || 0);
                 viewsOdometerEl.innerHTML = userViews;
 
             } catch (error) {
                 console.error("Error fetching channel data:", error);
-                // Stop fetching on error to avoid spamming the console
                 clearInterval(dataFetchIntervalId);
             }
         }
@@ -372,7 +369,8 @@
             
             contentDisplay.style.display = 'block';
 
-            fetchChannelData();
+            // Initial fetch is now done once and the interval takes over
+            fetchChannelData(); 
             dataFetchIntervalId = setInterval(fetchChannelData, SUBSCRIBER_UPDATE_INTERVAL);
         }
 
