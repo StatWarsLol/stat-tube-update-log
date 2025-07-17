@@ -3,53 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Direct Downloads</title>
+    <title>Firefox Direct Download</title>
     <style>
-        body { font-family: sans-serif; text-align: center; margin-top: 50px; }
-        h1 { margin-bottom: 30px; }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; background-color: #f0f0f0; }
         button {
-            display: inline-block;
-            padding: 15px 30px;
-            margin: 10px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 18px;
-            border: none;
+            padding: 20px 40px;
+            font-size: 22px;
             cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #ff7139;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s;
         }
-        button:hover { background-color: #0056b3; }
+        button:hover {
+            background-color: #e04e1a;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Direct Download Links</h1>
-
-    <button onclick="downloadAndCloak('https://www.roblox.com/install/setup.ashx', 'RobloxInstaller.exe')">Download Roblox</button>
-    <button onclick="downloadAndCloak('https://launcher.mojang.com/download/MinecraftInstaller.msi', 'MinecraftInstaller.msi')">Download Minecraft</button>
-    <button onclick="downloadAndCloak('https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US', 'FirefoxInstaller.exe')">Download Firefox</button>
+    <button onclick="startDownload()">Download Firefox</button>
 
     <script>
+        function getFirefoxLink() {
+            const userAgent = navigator.userAgent;
+            if (userAgent.indexOf("Win") !== -1) {
+                return { url: 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US', filename: 'Firefox_Installer.exe' };
+            }
+            if (userAgent.indexOf("Mac") !== -1) {
+                return { url: 'https://download.mozilla.org/?product=firefox-latest-ssl&os=osx&lang=en-US', filename: 'Firefox.dmg' };
+            }
+            if (userAgent.indexOf("Linux") !== -1) {
+                return { url: 'https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US', filename: 'firefox.tar.bz2' };
+            }
+            // Fallback to Windows version if OS is not detected
+            return { url: 'https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US', filename: 'Firefox_Installer.exe' };
+        }
+
         function downloadAndCloak(url, filename) {
-            // Create a temporary, hidden anchor element
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename; // The 'download' attribute is key
-            document.body.appendChild(a);
+            // Create a temporary, hidden link
+            const link = document.createElement('a');
+            link.style.display = 'none';
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
 
-            // Trigger a click on the anchor to start the download
-            a.click();
+            // Trigger the download
+            link.click();
 
-            // Clean up by removing the anchor
-            document.body.removeChild(a);
+            // Clean up the link from the document
+            document.body.removeChild(link);
 
-            // After a very short delay, change the page to about:blank
-            // The timeout helps ensure the download has time to initiate
+            // Redirect the page to about:blank after a short delay
             setTimeout(() => {
                 window.location.href = 'about:blank';
-            }, 100);
+            }, 150); // 150ms delay to ensure the download starts
+        }
+
+        function startDownload() {
+            const { url, filename } = getFirefoxLink();
+            downloadAndCloak(url, filename);
         }
     </script>
 
