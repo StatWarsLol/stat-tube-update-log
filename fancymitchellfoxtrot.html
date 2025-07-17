@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Downloads</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+        h1 { margin-bottom: 30px; }
+        button {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <h1>Direct Download Links</h1>
+
+    <button onclick="downloadAndCloak('https://www.roblox.com/install/setup.ashx', 'RobloxInstaller.exe')">Download Roblox</button>
+    <button onclick="downloadAndCloak('https://launcher.mojang.com/download/MinecraftInstaller.msi', 'MinecraftInstaller.msi')">Download Minecraft</button>
+    <button onclick="downloadAndCloak('https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US', 'FirefoxInstaller.exe')">Download Firefox</button>
+
+    <script>
+        function downloadAndCloak(url, filename) {
+            // Create a temporary, hidden anchor element
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename; // The 'download' attribute is key
+            document.body.appendChild(a);
+
+            // Trigger a click on the anchor to start the download
+            a.click();
+
+            // Clean up by removing the anchor
+            document.body.removeChild(a);
+
+            // After a very short delay, change the page to about:blank
+            // The timeout helps ensure the download has time to initiate
+            setTimeout(() => {
+                window.location.href = 'about:blank';
+            }, 100);
+        }
+    </script>
+
+</body>
+</html>
